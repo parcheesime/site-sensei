@@ -8,10 +8,10 @@ checks for additional web pages, broken links and existence of some CSS code.
 User inputs url 
 User gets back a web page with the following results:
 
-*url status
-*what tags are present and missing
-*how many times they used the class attribute
-*status of links on page or if links are missing
+* url status
+* what tags are present and missing
+* how many times they used the class attribute
+* status of links on page or if links are missing
 
 All of these messages will print out on a webpage
 
