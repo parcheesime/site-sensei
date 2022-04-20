@@ -1,10 +1,9 @@
 
-# The program will use urllib to read the HTML from a URL,
+# This code uses urllib to read the HTML from a URL,
 # extract tags and frequency used, extract links and broken links
 
 
 import ssl
-import socket
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -18,11 +17,11 @@ ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
 
-# Retrieve tags frequency, using urlopen()
-def get_tags(url):
+# Retrieve tags frequency dictionary, according to list of tags
+def get_tags(url, tag_list):
     html = urllib.request.urlopen(url, context=ctx).read()
     soup = BeautifulSoup(html, 'html.parser')
-    tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'img']
+    tags = tag_list
     results = {}
     for tag in tags:
         t = soup(tag)
@@ -37,52 +36,24 @@ def get_class(url):
     page = requests.get(url)
     data = page.text
     data = data.split()
-    for ele in data:
-        if 'class' in ele:
-            print(ele)
-
-
-# check for broken links
-def link_status(url):
-    page = requests.get(url)
-    response_code = str(page.status_code)
-    data = page.text
-    soup = BeautifulSoup(data, 'html.parser')
-    for link in soup.find_all('a'):
-        status = "URL: {} | Status: {}".format(link.get('href'), response_code)
-        return status
+    count_class = [ele for ele in data if 'class' in ele]
+    return "Class attribute is used {} time(s).".format(len(count_class))
 
 
 # Get list of URL on webpage
 def get_links(url):
     html = urllib.request.urlopen(url, context=ctx).read()
-    soup = BeautifulSoup(html, 'lxml')
-    urllist = []
+    soup = BeautifulSoup(html, 'html.parser')
     # Retrieve anchor tags, make a list of urls
     tags = soup('a')
-    urllist.append(url)
-    for tag in tags:
-        content = tag.get('href', None)
-        urllist.append(content)
+    urllist = [tag.get('href', None) for tag in tags]
     return urllist
 
 
-def check_localhost():
-    localhost = socket.gethostbyname('localhost')
-    return localhost == '127.0.0.1'
-
-
-# Check page links connectivity
-def check_connectivity(url):
-    request = requests.get(url)
-    response_code = request.status_code
-    return response_code == 200
-
-
-# Create HTML page with results
-def html_output(feedback):
+# Create HTML page with message displayed
+def html_output(fb1):
     with open('MST.html', 'w') as html_pg:
         html_pg.write("<!DOCTYPE html><html>\n<head>\n<title> \n Teacher Feedback for Web Project \
-           </title>\n</head> <body><h1>Your Results for the <u>Web Page Project</u></h1>\
-           \n<h2>A <u>CS</u> {} </h2> \n</body></html>".format(feedback))
+           </title>\n</head> <body><h1>Your Results for the Web Page Project</h1>\
+           \n<ul> {} </ul> \n</body></html>".format(fb1))
         return webbrowser.open('MST.html')

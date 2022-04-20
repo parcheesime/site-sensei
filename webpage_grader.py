@@ -1,9 +1,40 @@
 from webchecks import *
+from linkchecks import *
 
-tags_dict = get_tags("https://codeprojects.org/iNV5eM-Z6G6SNxKaJS03VwgNHr-oRk1jdsQe3BvcROY/")
+url = "https://codeprojects.org/VoP_lzaZzLWjc7BGzEYbFSMyTbHfdb29WN12Rg4U-Hw/"
+tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'img', 'li', 'br', 'a']
 
-for k, v in tags_dict.items():
-    if v == 0:
-        print("You have no {} tags. Please fix your web page.".format(k))
+# URL status message, type string
+url_status_message = link_status(url)
+
+# Sort dictionary of tags from student web page into missing and present
+tags_dict = get_tags(url, tags)
+missing_tags = [k for k, v in tags_dict.items() if v == 0]
+present_tags = [k for k, v in tags_dict.items() if v != 0]
+# Tags message, type string
+tags_message = "Found {} tags.\nMissing {} tags. See Rubric.".format(present_tags, missing_tags)
+
+# Class attribute message type string
+class_message = get_class(url)
+
+# Search links on page, list of links
+listof_links = get_links(url)
+page_links = [url+link for link in listof_links]
+
+# Create a list of status messages for any links on the page
+# If the list is empty, it means the student did not link a new html page, or they used an outside link
+page_links_status_messages = [link_status(page_link) for page_link in page_links if "html" in page_link]
+
+
+def create_message():
+    big_message = "<li>{}</li>\n<li>{}</li>\n<li>{}</li>\n ".format(url_status_message, tags_message, class_message)
+    if len(page_links_status_messages) == 0:
+        big_message = big_message + "{} {} {} {}".format("\n", "<li>", "Missing link on page or incorrect link. See "
+                                                                       "Rubric.", "</li>")
     else:
-        print("All {} tags are complete.".format(k))
+        for link_message in page_links_status_messages:
+            big_message = big_message + "{} {} {} {} ". format("\n", "<li>", link_message, "</li>")
+    html_output(big_message)
+
+
+create_message()
