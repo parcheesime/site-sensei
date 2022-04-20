@@ -8,6 +8,7 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+import webbrowser
 import requests
 from bs4 import BeautifulSoup
 
@@ -46,7 +47,7 @@ def link_status(url):
     page = requests.get(url)
     response_code = str(page.status_code)
     data = page.text
-    soup = BeautifulSoup(data, 'lxml')
+    soup = BeautifulSoup(data, 'html.parser')
     for link in soup.find_all('a'):
         status = "URL: {} | Status: {}".format(link.get('href'), response_code)
         return status
@@ -71,7 +72,7 @@ def check_localhost():
     return localhost == '127.0.0.1'
 
 
-# Check url connectivity
+# Check page links connectivity
 def check_connectivity(url):
     request = requests.get(url)
     response_code = request.status_code
@@ -81,8 +82,7 @@ def check_connectivity(url):
 # Create HTML page with results
 def html_output(feedback):
     with open('MST.html', 'w') as html_pg:
-        html_pg.write('<html>\n<head>\n<title> \n Teacher Feedback for Web Project \
-           </title>\n</head> <body><h1>Your Results for the<u>Web Page Project</u></h1>\
-           \n<h2>A <u>CS</u> {} </h2> \n</body></html>'.format(feedback))
-
-html_output("good job")
+        html_pg.write("<!DOCTYPE html><html>\n<head>\n<title> \n Teacher Feedback for Web Project \
+           </title>\n</head> <body><h1>Your Results for the <u>Web Page Project</u></h1>\
+           \n<h2>A <u>CS</u> {} </h2> \n</body></html>".format(feedback))
+        return webbrowser.open('MST.html')
