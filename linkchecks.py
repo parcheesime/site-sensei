@@ -19,8 +19,7 @@ def check_localhost():
 # Check links on page connectivity
 def check_connectivity(url):
     request = requests.get(url)
-    response_code = request.status_code
-    return response_code == 200
+    return request.status_code == 200
 
 
 # check for broken links, put messages in list

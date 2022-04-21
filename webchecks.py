@@ -21,9 +21,8 @@ ctx.verify_mode = ssl.CERT_NONE
 def get_tags(url, tag_list):
     html = urllib.request.urlopen(url, context=ctx).read()
     soup = BeautifulSoup(html, 'html.parser')
-    tags = tag_list
     results = {}
-    for tag in tags:
+    for tag in tag_list:
         t = soup(tag)
         if tag not in soup(tag):
             results[tag] = 0
@@ -51,9 +50,9 @@ def get_links(url):
 
 
 # Create HTML page with message displayed
-def html_output(fb1):
+def html_output(feedback):
     with open('MST.html', 'w') as html_pg:
         html_pg.write("<!DOCTYPE html><html>\n<head>\n<title> \n Teacher Feedback for Web Project \
            </title>\n</head> <body><h1>Your Results for the Web Page Project</h1>\
-           \n<ul> {} </ul> \n</body></html>".format(fb1))
+           \n<ul> {} </ul> \n</body></html>".format(feedback))
         return webbrowser.open('MST.html')
