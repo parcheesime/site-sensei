@@ -27,7 +27,7 @@ def link_status(url):
     page = requests.get(url)
     response_code = str(page.status_code)
     if response_code == "200":
-        status = "URL: {} | Status: {} | Request Succeeded.".format(url, response_code)
+        status = "URL Connection UPDATE: <br> {} <br> Status: {} <br> Request Succeeded.".format(url, response_code)
     else:
-        status = "URL: {} | Status: {} | Request Failed. Check Link.".format(url, response_code)
+        status = "URL Connection UPDATE: <br> {} <br> Status: {} <br> Request Failed. Check Link.".format(url, response_code)
     return status

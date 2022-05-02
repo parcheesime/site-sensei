@@ -36,7 +36,7 @@ def get_class(url):
     data = page.text
     data = data.split()
     count_class = [ele for ele in data if 'class' in ele]
-    return "Class attribute is used {} time(s).".format(len(count_class))
+    return "CSS UPDATE: <br> Class attribute is used {} time(s).".format(len(count_class))
 
 
 # Get list of URL on webpage

@@ -1,5 +1,6 @@
 from webchecks import get_links, get_class, get_tags, html_output
 from linkchecks import link_status
+from emoji import emojize
 
 url = "https://codeprojects.org/VoP_lzaZzLWjc7BGzEYbFSMyTbHfdb29WN12Rg4U-Hw/"
 tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'img', 'li', 'br', 'a']
@@ -12,8 +13,7 @@ tags_dict = get_tags(url, tags)
 missing_tags = [k for k, v in tags_dict.items() if v == 0]
 present_tags = [k for k, v in tags_dict.items() if v != 0]
 # Tags message, type string
-tags_message = "Found {} tags.\nMissing {} tags. See Rubric.".format(present_tags, missing_tags)
-
+tags_message = "HTML Tags UPDATE: <br> Found {} tags <br> {} Missing {} tags <br> See Rubric.".format(present_tags, '\n', missing_tags)
 # Class attribute message type string
 class_message = get_class(url)
 
@@ -27,13 +27,13 @@ page_links_status_messages = [link_status(page_link) for page_link in page_links
 
 
 def create_message():
-    big_message = "<li>{}</li>\n<li>{}</li>\n<li>{}</li>\n ".format(url_status_message, tags_message, class_message)
+    big_message = "<li>{}</li>\n<li>{}</li>\n<li>{}</li>\n ".format(tags_message, class_message, url_status_message)
     if len(page_links_status_messages) == 0:
-        big_message = big_message + "{} {} {} {}".format("\n", "<li>", "Missing link on page or incorrect link. See "
-                                                                       "Rubric.", "</li>")
+        big_message = big_message + "{} {} {} {}".format("\n", "<li>", "Missing link on page or incorrect link. <br> "
+                                                                       "See Rubric.", "</li>")
     else:
         for link_message in page_links_status_messages:
-            big_message = big_message + "{} {} {} {} ". format("\n", "<li>", link_message, "</li>")
+            big_message = big_message + "{} {} {} {}". format("\n", "<li>", link_message, "</li>")
     html_output(big_message)
 
 
