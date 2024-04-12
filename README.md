@@ -1,18 +1,21 @@
-WEB PAGE GRADER
+Web Page Grader
+Purpose: The Web Page Grader is designed to assist students in self-assessing their HTML and CSS projects before submission. This tool aims to provide immediate feedback, helping students improve and refine their web development skills.
 
-Web page grader purpose is to help students self assess their html projects before turning them in for grading.
+Functionality: Utilizing packages like Beautiful Soup, the Web Page Grader evaluates the submitted web pages by:
 
-Web page grader uses packages like beautiful soup to scrape their pages and counts frequencies of various html tags, 
-checks for additional web pages, broken links and existence of some CSS code.
+Checking URL accessibility.
+Analyzing the use and frequency of various HTML tags.
+Identifying missing or unused tags.
+Reviewing the usage of the class attribute throughout the document.
+Verifying the status of embedded links and detecting any broken or missing links.
+How It Works:
 
-User inputs url 
-User gets back a web page with the following results:
+Students input the URL of their web project.
+The system processes the webpage and generates a report which includes:
+URL status.
+Comprehensive lists of present and absent HTML tags.
+Count of class attribute usages.
+Status of all links on the page, highlighting any issues.
+Output: The results are displayed on a user-friendly web page, allowing students to easily understand and act on the feedback provided.
 
-* url status
-* what tags are present and missing
-* how many times they used the class attribute
-* status of links on page or if links are missing
-
-All of these messages will print out on a webpage
-
-Students will be able to run the program on their local computer.
+Local Usage: Students can run the Web Page Grader directly on their local machines, ensuring a convenient and secure way to check their work as they develop their projects.
