@@ -1,6 +1,10 @@
 from webchecks import get_links, get_class, get_tags, html_output
 from linkchecks import link_status
+<<<<<<< HEAD
 # from emoji import emojize
+=======
+# import emoji
+>>>>>>> 4c4603190828b93e9fc061a39d26ea1c4aa9b7d1
 
 url = "https://codeprojects.org/VoP_lzaZzLWjc7BGzEYbFSMyTbHfdb29WN12Rg4U-Hw/"
 tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'img', 'li', 'br', 'a']
