@@ -113,3 +113,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Student data and grading outputs
+student_pages.csv
+csv_file.csv
+grades_output.csv
+grades_feedback.html
+*.bak

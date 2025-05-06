@@ -1,26 +1,82 @@
 # Web Page Grader
 
-## Purpose
-The Web Page Grader is designed to assist students in self-assessing their HTML and CSS projects before submission. This tool aims to provide immediate feedback, helping students improve and refine their web development skills.
+## 🎯 Purpose
+Web Page Grader helps middle school students and teachers evaluate HTML and CSS projects quickly and consistently. Students receive immediate feedback on the structure and quality of their web pages, while teachers can speed grade entire classes with a single script.
 
-## Functionality
-Utilizing packages like Beautiful Soup, the Web Page Grader evaluates the submitted web pages by:
-- Checking URL accessibility.
-- Analyzing the use and frequency of various HTML tags.
-- Identifying missing or unused tags.
-- Reviewing the usage of the `class` attribute throughout the document.
-- Verifying the status of embedded links and detecting any broken or missing links.
+## 💡 Key Features
 
-## How It Works
-1. Students input the URL of their web project.
-2. The system processes the webpage and generates a report which includes:
-   - URL status.
-   - Comprehensive lists of present and absent HTML tags.
-   - Count of `class` attribute usages.
-   - Status of all links on the page, highlighting any issues.
+### For Teachers
+- Grade an entire class by importing a CSV with student names and project URLs
+- Output:
+  - A structured CSV file with summary feedback
+  - An HTML file (`grades_feedback.html`) with detailed, clickable feedback per student
 
-## Output
-The results are displayed on a user-friendly web page, allowing students to easily understand and act on the feedback provided.
+🚧 Coming Soon
+### For Students
+- Self-check by entering a project URL
+- Instant feedback on:
+  - Required HTML tags (headings, paragraphs, images, lists, etc.)
+  - Use of the `class` attribute and external CSS
+  - Working links to additional HTML pages
+  - Presence of image credits
 
-## Local Usage
-Students can run the Web Page Grader directly on their local machines, ensuring a convenient and secure way to check their work as they develop their projects.
+## ⚙️ How It Works
+
+### Individual Use
+1. Call `generate_feedback_html(url)` with a student's project URL.
+2. An HTML report is returned with detailed feedback.
+
+### Batch Grading
+1. Prepare a CSV file like this:
+
+   ```csv
+   name,url
+   Alice,https://codeprojects.org/your-page
+   Bob,https://codeprojects.org/another-page
+
+Run the batch grader:
+
+bash
+Copy
+Edit
+python batch_grader.py student_pages.csv
+You’ll get:
+
+grades_output.csv — summary feedback for each student
+
+grades_feedback.html — full clickable report for all students
+
+🧪 Technologies Used
+Python 3
+
+Beautiful Soup (HTML parsing)
+
+Requests (link and CSS validation)
+
+📁 Folder Structure
+Copy
+Edit
+web-page-grader/
+├── batch_grader.py
+├── webpage_grader.py
+├── webchecks.py
+├── linkchecks.py
+├── student_pages.csv
+├── grades_output.csv
+└── grades_feedback.html
+🚧 Coming Soon
+Support for JavaScript-based Game Lab projects
+
+Scoring rubric integration
+
+Option for generating individual HTML reports per student
+
+Student-facing web form version (for Chromebook-friendly self-check)
+
+👩‍🏫 Ideal For
+Computer Science teachers using Google Classroom
+
+Students working on Code.org, CodeProjects, or other beginner-friendly web editors
+
+📝 License
+MIT License
