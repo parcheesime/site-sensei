@@ -203,4 +203,3 @@ def html_output(feedback):
         )
 
     return webbrowser.open(MST_FILE.as_uri())
-
