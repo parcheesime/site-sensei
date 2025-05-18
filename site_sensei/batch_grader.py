@@ -1,9 +1,45 @@
-from webpage_grader import generate_feedback_html, grade_student
+"""
+batch_grader.py
+---------------
+Batch grading script for SiteSensei.
+
+This script reads a CSV file containing student names and project URLs,
+grades each student's webpage using the `grade_student` function, and
+generates two output files:
+1. A CSV summary of grading results
+2. An HTML file with detailed feedback for each student
+
+Inputs and outputs are managed in the `data/` directory.
+
+How to use:
+-----------
+Run from the command line:
+    python batch_grader.py data/student_pages.csv
+
+Dependencies:
+-------------
+- Python 3.x
+- webpage_grader.py (contains grading logic)
+- data/student_pages.csv (input list of student URLs)
+
+Author: Sensei Trepte
+"""
+
+# Imports
+from site_sensei.webpage_grader import generate_feedback_html, grade_student
+from pathlib import Path
 import html
 import csv
 
+# Define file paths
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-def grade_from_csv(csv_file, output_file="grades_output.csv", html_file="grades_feedback.html"):
+csv_file = DATA_DIR / "student_pages.csv"
+output_file = DATA_DIR / "grades_output.csv"
+html_file = DATA_DIR / "grades_feedback.html"
+
+
+def grade_from_csv(csv_file, output_file, html_file):
     with open(csv_file, newline='', encoding='utf-8') as csv_in, \
          open(output_file, 'w', newline='', encoding='utf-8') as csv_out, \
          open(html_file, 'w', encoding='utf-8') as html_out:
@@ -45,11 +81,11 @@ def grade_from_csv(csv_file, output_file="grades_output.csv", html_file="grades_
         html_out.write(f"<h2>{html.escape(name)}</h2>\n" + feedback_html)
         print(f"✅ Grading complete! CSV saved to {output_file}, HTML saved to {html_file}")
 
-   
+
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 2:
-        print("❌ Please provide a CSV file to grade.\nUsage: python batch_grader.py student_pages.csv")
-    else:
-        csv_input = sys.argv[1]
-        grade_from_csv(csv_input)
+    try:
+        grade_from_csv(csv_file, output_file, html_file)
+    except FileNotFoundError as e:
+        print(f"❌ File not found: {e.filename}")
+    except Exception as e:
+        print(f"❌ An unexpected error occurred: {e}")

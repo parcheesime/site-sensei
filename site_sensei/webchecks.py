@@ -1,15 +1,26 @@
 
-# This code uses urllib to read the HTML from a URL,
-# extract tags and frequency used, extract links and broken links
+"""
+webchecks.py
+------------
+Functions to analyze student web pages for:
+- HTML tag usage
+- Presence of class attributes
+- Linked page URLs
+- Image credits
+- External CSS file structure
+
+These tools are part of the SiteSensei web grading system and are used to generate structured feedback for student submissions.
+"""
 
 import re
 import ssl
-import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 import webbrowser
 import requests
 from bs4 import BeautifulSoup
+from collections import Counter
 
 # Ignore SSL certificate errors
 ctx = ssl.create_default_context()
@@ -26,6 +37,35 @@ def get_tags(url, tag_list):
 
     soup = BeautifulSoup(html, 'html.parser')
     return {tag: len(soup.find_all(tag)) for tag in tag_list}
+
+
+def count_broken_tags(url):
+    """
+    Estimate broken/missing HTML tags on the page.
+
+    Args:
+        url (str): The URL of the student's page.
+
+    Returns:
+        dict: Tag mismatch counts (tag -> difference in open/close).
+    """
+    try:
+        html = urllib.request.urlopen(url, context=ctx).read().decode('utf-8')
+        open_tags = re.findall(r'<([a-zA-Z0-9]+)(\s|>)', html)
+        close_tags = re.findall(r'</([a-zA-Z0-9]+)>', html)
+
+        open_counter = Counter(tag for tag, _ in open_tags)
+        close_counter = Counter(close_tags)
+
+        mismatches = {}
+        for tag in set(open_counter.keys()).union(close_counter.keys()):
+            diff = open_counter[tag] - close_counter[tag]
+            if diff != 0:
+                mismatches[tag] = diff
+
+        return mismatches
+    except Exception as e:
+        return {"error": str(e)}
 
 
 # Check for CSS clss selectors, using requests.get
@@ -61,6 +101,25 @@ def has_image_credit(url):
         if 'credit' in p.get_text().lower() or 'image by' in p.get_text().lower():
             return True
     return False
+
+
+def count_comments(url):
+    """
+    Count the number of HTML comments on the page.
+
+    Args:
+        url (str): The URL of the student's page.
+
+    Returns:
+        int: Number of HTML comments.
+    """
+    try:
+        html = urllib.request.urlopen(url, context=ctx).read()
+        soup = BeautifulSoup(html, 'html.parser')
+        comments = soup.find_all(string=lambda text: isinstance(text, type(soup.comment)))
+        return len(comments)
+    except Exception:
+        return 0
 
 
 def get_css_file_url(url):
@@ -100,7 +159,7 @@ def check_css_properties(css_url, required_props=None):
 
     try:
         css_text = requests.get(css_url).text
-        selector_count = css_text.count('{')  # Rough estimate of number of selectors/rules
+        selector_count = css_text.count('{')
     except Exception as e:
         return {
             'used': [],
@@ -133,8 +192,15 @@ def check_css_properties(css_url, required_props=None):
 
 # Create HTML page with message displayed
 def html_output(feedback):
-    with open('MST.html', 'w', encoding='utf-8') as html_pg:
-        html_pg.write("<!DOCTYPE html><html>\n<head>\n<title> \n Teacher Feedback for Web Project \
-           </title>\n</head> <body><h1>Your Results for the Web Page Project</h1>\
-           \n<ul> {} </ul> \n</body></html>".format(feedback))
-        return webbrowser.open('MST.html')
+    STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+    MST_FILE = STATIC_DIR / "MST.html"
+
+    with open(MST_FILE, 'w', encoding='utf-8') as html_pg:
+        html_pg.write(
+            "<!DOCTYPE html><html>\n<head>\n<title>Teacher Feedback for Web Project</title>\n"
+            "</head><body><h1>Your Results for the Web Page Project</h1>\n<ul>{}</ul>\n"
+            "</body></html>".format(feedback)
+        )
+
+    return webbrowser.open(MST_FILE.as_uri())
+

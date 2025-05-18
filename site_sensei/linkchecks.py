@@ -1,4 +1,16 @@
-# Code snippets, check_localhost, and check_connectivity from Google Python for Automation course on Coursera
+"""
+linkchecks.py
+--------------
+Utility functions for checking network and URL connectivity
+Used in the SiteSensei web page grading system.
+
+These functions allow the grader to:
+- Verify local networking is working (e.g., localhost)
+- Check if a URL is reachable
+- Report HTTP response status in formatted HTML
+
+Originally adapted from the Google IT Automation with Python course.
+"""
 
 import ssl
 import socket

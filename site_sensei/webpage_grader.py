@@ -1,9 +1,37 @@
-from webchecks import get_links, get_class, get_tags, html_output
-from webchecks import get_css_file_url, check_css_properties, has_image_credit
-from linkchecks import link_status
+"""
+webpage_grader.py
+-----------------
+Main grading and feedback logic for the SiteSensei project.
+
+This script evaluates individual student web pages by checking for:
+- Required HTML tags and structure
+- CSS usage and external stylesheet presence
+- Image credit in content
+- Class attribute usage
+- Working links to additional HTML pages
+
+Functions:
+----------
+- grade_student(url): Returns a quick grading summary used in CSV output
+- generate_feedback_html(url): Builds detailed feedback in formatted HTML
+
+Dependencies:
+-------------
+- webchecks.py for tag analysis, class detection, CSS file extraction
+- linkchecks.py for validating URL connectivity
+- BeautifulSoup and requests for page parsing and HTML evaluation
+"""
+
 import html
 import requests
 from bs4 import BeautifulSoup
+from site_sensei.webchecks import (
+    get_links, get_class, get_tags, get_css_file_url,
+    check_css_properties, has_image_credit,
+    count_broken_tags, count_comments
+)
+from site_sensei.linkchecks import link_status
+
 
 # Smart tag explanations
 smart_explanations = {
@@ -98,6 +126,19 @@ def generate_feedback_html(url):
 
     # Image credit
     detail_items.append("✔️ Image credit found in paragraph." if has_image_credit(url) else "❌ Missing image credit in paragraph.")
+
+    # Broken tag check (moved up to summary, no breakdown)
+    tag_mismatches = count_broken_tags(url)
+    clean_mismatches = {tag: diff for tag, diff in tag_mismatches.items() if tag.strip()}
+
+    if clean_mismatches:
+        summary_items.append(f"❌ {len(clean_mismatches)} Tag Mismatches Found:")
+    else:
+        summary_items.append("✔️ No broken tags detected.")
+
+    # Comment count (also moved to summary)
+    num_comments = count_comments(url)
+    summary_items.append(f"✔️ HTML Comments Found: {num_comments}")
 
     # Smart tag suggestions
     smart_feedback = generate_smart_feedback(tag_counts)
