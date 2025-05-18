@@ -1,7 +1,7 @@
-# Web Page Grader
+# Site Sensei
 
 ## 🎯 Purpose
-Web Page Grader helps middle school students and teachers evaluate HTML and CSS projects quickly and consistently. Students receive immediate feedback on the structure and quality of their web pages, while teachers can speed grade entire classes with a single script.
+Site Sensei is meant to be a web page grader that helps middle school students and teachers evaluate HTML and CSS projects quickly and consistently. Students receive immediate feedback on the structure and quality of their web pages, while teachers can speed grade entire classes with a single script. This is a WIP.
 
 ## 💡 Key Features
 
