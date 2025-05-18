@@ -24,10 +24,13 @@ def check_connectivity(url):
 
 # check for broken links, put messages in list
 def link_status(url):
-    page = requests.get(url)
-    response_code = str(page.status_code)
-    if response_code == "200":
-        status = "URL Connection UPDATE: <br> {} <br> Status: {} <br> Request Succeeded.".format(url, response_code)
+    try:
+        page = requests.get(url, timeout=5)
+        response_code = page.status_code
+    except requests.exceptions.RequestException:
+        return f"URL Connection UPDATE: <br> {url} <br> ❌ Error connecting. Check Link."
+
+    if response_code == 200:
+        return f"URL Connection UPDATE: <br> {url} <br> Status: 200 <br> Request Succeeded."
     else:
-        status = "URL Connection UPDATE: <br> {} <br> Status: {} <br> Request Failed. Check Link.".format(url, response_code)
-    return status
+        return f"URL Connection UPDATE: <br> {url} <br> Status: {response_code} <br> Request Failed. Check Link."

@@ -19,17 +19,21 @@ ctx.verify_mode = ssl.CERT_NONE
 
 # Retrieve tags frequency dictionary, according to list of tags
 def get_tags(url, tag_list):
-    html = urllib.request.urlopen(url, context=ctx).read()
+    try:
+        html = urllib.request.urlopen(url, context=ctx).read()
+    except Exception:
+        return {tag: 0 for tag in tag_list}
+
     soup = BeautifulSoup(html, 'html.parser')
-    results = {}
-    for tag in tag_list:
-        results[tag] = len(soup.find_all(tag))
-    return results
+    return {tag: len(soup.find_all(tag)) for tag in tag_list}
 
 
 # Check for CSS clss selectors, using requests.get
 def get_class(url):
-    page = requests.get(url)
+    try:
+        page = requests.get(url)
+    except Exception:
+        return Exception
     data = page.text
     data = data.split()
     count_class = [ele for ele in data if 'class' in ele]
@@ -38,7 +42,10 @@ def get_class(url):
 
 # Get list of URL on webpage
 def get_links(url):
-    html = urllib.request.urlopen(url, context=ctx).read()
+    try:
+        html = urllib.request.urlopen(url, context=ctx).read()
+    except Exception:
+        return Exception
     soup = BeautifulSoup(html, 'html.parser')
     # Retrieve anchor tags, make a list of urls
     tags = soup('a')
@@ -57,19 +64,30 @@ def has_image_credit(url):
 
 
 def get_css_file_url(url):
-    """Extracts the href for a linked CSS file from the HTML <link> tag."""
-    html = urllib.request.urlopen(url, context=ctx).read()
-    soup = BeautifulSoup(html, 'html.parser')
-    link_tag = soup.find('link', rel='stylesheet')
-    if link_tag and link_tag.get('href'):
-        href = link_tag['href']
-        # Make absolute if it's relative
-        if href.startswith('http'):
-            return href
-        else:
-            base = url if url.endswith('/') else url.rsplit('/', 1)[0] + '/'
-            return urllib.parse.urljoin(base, href)
-    return None
+    try:
+        # Load HTML
+        html_bytes = urllib.request.urlopen(url, context=ctx).read()
+        html_string = html_bytes.decode("utf-8")
+
+        # Match student-linked style.css (case-insensitive)
+        match = re.search(r'<link[^>]+href=["\'](style\.css)["\']', html_string, re.IGNORECASE)
+        if match:
+            # Ensure project URL ends in the project ID folder
+            match_base = re.match(r'(https://codeprojects\.org/projects/weblab/[^/]+)', url)
+            if match_base:
+                base_url = match_base.group(1) + '/'
+                full_url = urllib.parse.urljoin(base_url, "style.css")
+                print(f"[DEBUG ✅] Found student style.css: {full_url}")
+                return full_url
+            else:
+                print(f"[ERROR] Could not extract project base from {url}")
+                return None
+
+        print(f"[WARN] No student style.css found in HTML for {url}")
+        return None
+    except Exception as e:
+        print(f"[ERROR] Failed to resolve CSS for {url}: {e}")
+        return None
 
 
 def check_css_properties(css_url, required_props=None):
@@ -82,29 +100,33 @@ def check_css_properties(css_url, required_props=None):
 
     try:
         css_text = requests.get(css_url).text
+        selector_count = css_text.count('{')  # Rough estimate of number of selectors/rules
     except Exception as e:
         return {
             'used': [],
             'missing': required_props,
+            'selector_count': 0,
             'message': f"❌ Error loading CSS file: {e}"
         }
 
-    # Extract all property names from CSS using regex: matches "property-name:"
+    # Extract property names from CSS (e.g., font-size:)
     all_props_used = set(re.findall(r'([a-zA-Z-]+)\s*:', css_text))
     found = [prop for prop in required_props if prop in all_props_used]
     missing = [prop for prop in required_props if prop not in all_props_used]
 
     message_lines = [
-        f"✔️ CSS Property Summary:",
+        "✔️ CSS Property Summary:",
         f"- Total unique properties used: {len(all_props_used)}",
-        f"- Properties used:\n" + ", ".join(sorted(all_props_used)),
-        f"- Missing required properties:\n" + (", ".join(missing) if missing else "None 🎉"),
-        f"- Found required properties: {found}"
+        f"- Properties used: {', '.join(sorted(all_props_used))}",
+        f"- Missing required properties: {', '.join(missing) if missing else 'None 🎉'}",
+        f"- Found required properties: {found}",
+        f"- Total unique CSS selectors: {selector_count}"
     ]
 
     return {
         'used': sorted(all_props_used),
         'missing': missing,
+        'selector_count': selector_count,
         'message': "<br>".join(message_lines)
     }
 

@@ -1,4 +1,5 @@
 from webpage_grader import generate_feedback_html, grade_student
+import html
 import csv
 
 
@@ -41,7 +42,7 @@ def grade_from_csv(csv_file, output_file="grades_output.csv", html_file="grades_
             feedback_html = generate_feedback_html(url)
             html_out.write(f"<h2>{name}</h2>\n" + feedback_html)
 
-        html_out.write("</body></html>")
+        html_out.write(f"<h2>{html.escape(name)}</h2>\n" + feedback_html)
         print(f"✅ Grading complete! CSV saved to {output_file}, HTML saved to {html_file}")
 
    
