@@ -1,0 +1,18 @@
+<!-- templates/teacher_results.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grading Complete</title>
+</head>
+<body>
+  <h1>🎉 Grading Complete!</h1>
+
+  <p>✅ You can now download the results:</p>
+  <ul>
+    <li><a href="{{ url_for('download_csv') }}">Download Summary CSV</a></li>
+    <li><a href="{{ url_for('download_html') }}">View Full HTML Feedback</a></li>
+  </ul>
+
+  <a href="{{ url_for('teacher_batch') }}">🔁 Grade another class</a>
+</body>
+</html>

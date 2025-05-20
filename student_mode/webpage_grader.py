@@ -25,12 +25,12 @@ Dependencies:
 import html
 import requests
 from bs4 import BeautifulSoup
-from site_sensei.webchecks import (
+from shared.webchecks import (
     get_links, get_class, get_tags, get_css_file_url,
     check_css_properties, has_image_credit,
     count_broken_tags, count_comments
 )
-from site_sensei.linkchecks import link_status
+from shared.linkchecks import link_status
 
 
 # Smart tag explanations

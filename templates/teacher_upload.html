@@ -1,0 +1,20 @@
+<!-- templates/teacher_upload.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teacher Batch Grading - SiteSensei</title>
+</head>
+<body>
+  <h1>👩‍🏫 Batch Grading</h1>
+
+  <form action="{{ url_for('teacher_batch') }}" method="post" enctype="multipart/form-data">
+    <label>Upload CSV file:</label>
+    <input type="file" name="csv_file"><br><br>
+
+    <label>...or paste a Google Sheet CSV link:</label><br>
+    <input type="url" name="sheet_link" style="width: 400px;"><br><br>
+
+    <button type="submit">Run Batch Grader</button>
+  </form>
+</body>
+</html>

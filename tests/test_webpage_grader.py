@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch
-from site_sensei import linkchecks, webchecks, webpage_grader
+from shared import linkchecks
+from shared import webchecks
+from student_mode import webpage_grader
 
 TEST_URL = "https://codeprojects.org/projects/weblab/JONWyX5NqCkqfKdglTZSkoL6S3cHatmg3MFurTWWDXY"
 

@@ -26,7 +26,7 @@ Author: Sensei Trepte
 """
 
 # Imports
-from site_sensei.webchecks import (
+from shared.webchecks import (
     count_broken_tags, count_comments, get_tags,
     get_css_file_url, check_css_properties
 )
@@ -112,7 +112,7 @@ def grade_from_csv(csv_file, output_file, html_file):
             })
 
             # HTML feedback output (unchanged)
-            from site_sensei.webpage_grader import generate_feedback_html
+            from student_mode.webpage_grader import generate_feedback_html
             feedback_html = generate_feedback_html(url)
             html_out.write(f"<h2>{title}</h2>\n" + feedback_html)
 
