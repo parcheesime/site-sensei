@@ -3,18 +3,25 @@
 <html>
 <head>
   <title>Teacher Batch Grading - SiteSensei</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+  <div class='container'> 
   <h1>👩‍🏫 Batch Grading</h1>
-
-  <form action="{{ url_for('teacher_batch') }}" method="post" enctype="multipart/form-data">
+   
+<form action="{{ url_for('teacher_batch') }}" method="post" enctype="multipart/form-data" onsubmit="document.getElementById('loading-message').style.display='block'">
+  
     <label>Upload CSV file:</label>
     <input type="file" name="csv_file"><br><br>
 
     <label>...or paste a Google Sheet CSV link:</label><br>
     <input type="url" name="sheet_link" style="width: 400px;"><br><br>
 
-    <button type="submit">Run Batch Grader</button>
-  </form>
+    <button type="submit">Run Batch Grader</button><br><br>
+    <p id="loading-message" style="display:none;">🔄 Grading in progress...</p>
+  </form><br>
+  <a href="{{ url_for('home') }}" class="home-link">← Back to Home</a><br><br>
+</div>
 </body>
 </html>

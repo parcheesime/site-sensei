@@ -3,10 +3,12 @@
 <html>
 <head>
   <title>Grading Complete</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
   <h1>🎉 Grading Complete!</h1>
-
+  <div class="container">
   <p>✅ You can now download the results:</p>
   <ul>
     <li><a href="{{ url_for('download_csv') }}">Download Summary CSV</a></li>
@@ -14,5 +16,6 @@
   </ul>
 
   <a href="{{ url_for('teacher_batch') }}">🔁 Grade another class</a>
+</div>
 </body>
 </html>
