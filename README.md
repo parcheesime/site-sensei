@@ -1,8 +1,6 @@
 # 🧠 Site Sensei
 
-**Site Sensei** is a free and open-source grading tool that helps students and teachers evaluate web development projects. It currently supports HTML and CSS analysis, with plans to expand into JavaScript-based platforms like Code.org’s Game Lab.
-
-This project is built for **educational purposes** and is ideal for classrooms using Chromebooks, Google Classroom, or Code.org/Web Lab.
+**Site Sensei** is a free and open-source grading tool that helps students and teachers evaluate web development projects. It currently supports HTML and CSS analysis and is built for **educational purposes**.
 
 ---
 
