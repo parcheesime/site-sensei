@@ -1,10 +1,22 @@
-from flask import Flask, request, render_template, send_file, redirect, url_for
+from flask import Flask, request, render_template, send_file, redirect, url_for, flash
 from teacher_mode.batch_grader import grade_from_csv
 import requests
 import os
 
 app = Flask(__name__)
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+
+# 🔐 New login route
+@app.route('/teacher', methods=['GET', 'POST'])
+def teacher_login():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == 'admin':
+            return redirect(url_for('teacher_batch'))
+        else:
+            flash('Incorrect password. Try again.')
+    return render_template('teacher_login.html')
 
 
 @app.route('/teacher-batch', methods=['GET', 'POST'])
@@ -53,12 +65,7 @@ def download_html():
 
 @app.route('/')
 def home():
-    return '''
-    <h1>Welcome to SiteSensei</h1>
-    <p>Select your mode:</p>
-    <a href="/student-check"><button>👩‍🎓 I'm a Student</button></a>
-    <a href="/teacher-batch"><button>👨‍🏫 I'm a Teacher</button></a>
-    '''
+    return render_template('index.html')
 
 
 if __name__ == '__main__':

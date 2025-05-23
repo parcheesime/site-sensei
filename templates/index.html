@@ -1,15 +1,22 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SiteSensei</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <h1>Welcome to SiteSensei</h1>
-  <p>Select your mode:</p>
-  <ul>
-    <li><a href="{{ url_for('student_check') }}">👩‍🎓 I'm a Student</a></li>
-    <li><a href="{{ url_for('teacher_batch') }}">👨‍🏫 I'm a Teacher</a></li>
-  </ul>
+  <div class="container">
+    <img src="{{ url_for('static', filename='assets/owl_logo.png') }}" alt="SiteSensei Owl Logo" class="logo" />
+    <h1 class="title">Site Sensei</h1>
+    <p class="subtitle">A code evaluation tool for<br>teachers and students</p>
+
+    <div class="button-container">
+     <a href="/teacher" class="btn teacher">Teacher<br><span>login required</span></a>
+      <a href="/student" class="btn student">Student</a>
+    </div>
+  </div>
 </body>
 </html>

@@ -1,0 +1,41 @@
+# 🚀 CI/CD Workflow for SiteSensei
+# This GitHub Actions workflow automatically runs tests and code linting 
+# on every push or pull request to the main branch.
+# It ensures code quality and reliability by verifying functionality 
+# and enforcing consistent style across the codebase.
+
+
+name: CI for SiteSensei
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🧾 Checkout repo
+      uses: actions/checkout@v3
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: ✅ Run Unit Tests
+      run: |
+        python -m unittest discover tests
+
+    - name: 🧹 Run Linter (flake8)
+      run: |
+        pip install flake8
+        flake8 shared/ student_mode/ teacher_mode/ app.py --max-line-length=100
