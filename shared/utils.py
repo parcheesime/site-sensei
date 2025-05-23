@@ -46,3 +46,12 @@ def link_status(url):
         return f"URL Connection UPDATE: <br> {url} <br> Status: 200 <br> Request Succeeded."
     else:
         return f"URL Connection UPDATE: <br> {url} <br> Status: {response_code} <br> Request Failed. Check Link."
+
+
+def clean_url(url):
+    """
+    Remove trailing /edit or /edit# from shared Code.org project links.
+    """
+    if not url:
+        return ''
+    return url.split('/edit')[0].strip()

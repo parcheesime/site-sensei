@@ -30,7 +30,7 @@ from shared.webchecks import (
     check_css_properties, has_image_credit,
     count_broken_tags, count_comments
 )
-from shared.linkchecks import link_status
+from shared.utils import link_status
 
 
 # Smart tag explanations
