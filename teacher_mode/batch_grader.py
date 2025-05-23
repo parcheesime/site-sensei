@@ -34,24 +34,8 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 from pathlib import Path
-
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-csv_file = DATA_DIR / "student_pages.csv"
-output_file = DATA_DIR / "grades_output.csv"
-html_file = DATA_DIR / "grades_feedback.html"
-
-smart_tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'img']
-
-
-from shared.webchecks import (
-    count_broken_tags, count_comments, get_tags,
-    get_css_file_url, check_css_properties
-)
 from student_mode.webpage_grader import generate_feedback_html
-import requests
-from bs4 import BeautifulSoup
-import csv
-from pathlib import Path
+
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 csv_file = DATA_DIR / "student_pages.csv"

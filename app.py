@@ -63,6 +63,7 @@ def download_csv():
 def download_html():
     return send_file(os.path.join(DATA_DIR, 'grades_feedback.html'), as_attachment=False)
 
+
 @app.route('/')
 def home():
     return render_template('index.html')

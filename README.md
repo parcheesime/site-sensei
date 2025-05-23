@@ -92,9 +92,9 @@ Then open your browser to http://127.0.0.1:5000
 
 name,url
 
-Alice,https://codeprojects.org/your-page
+Alice,https://example.com/page1
 
-Bob,https://codeprojects.org/another-page
+Bob,https://example.com/page2
 
 ## 🔐 Licensing & Use
 
