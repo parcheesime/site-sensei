@@ -1,82 +1,105 @@
-# Site Sensei
+# 🧠 Site Sensei
+
+**Site Sensei** is a free and open-source grading tool that helps students and teachers evaluate web development projects. It currently supports HTML and CSS analysis, with plans to expand into JavaScript-based platforms like Code.org’s Game Lab.
+
+This project is built for **educational purposes** and is ideal for classrooms using Chromebooks, Google Classroom, or Code.org/Web Lab.
+
+---
 
 ## 🎯 Purpose
-Site Sensei is meant to be a web page grader that helps middle school students and teachers evaluate HTML and CSS projects quickly and consistently. Students receive immediate feedback on the structure and quality of their web pages, while teachers can speed grade entire classes with a single script. This is a WIP.
+
+Site Sensei provides structured, automated feedback on student web pages. It was created to help:
+- **Teachers** batch-grade student websites more efficiently
+- **Students** get immediate feedback and improve independently
+
+---
 
 ## 💡 Key Features
 
-### For Teachers
-- Grade an entire class by importing a CSV with student names and project URLs
-- Output:
-  - A structured CSV file with summary feedback
-  - An HTML file (`grades_feedback.html`) with detailed, clickable feedback per student
-
-🚧 Coming Soon
-### For Students
-- Self-check by entering a project URL
-- Instant feedback on:
-  - Required HTML tags (headings, paragraphs, images, lists, etc.)
-  - Use of the `class` attribute and external CSS
-  - Working links to additional HTML pages
+### ✅ HTML/CSS Grading (Core)
+- Detects and evaluates:
+  - HTML structure: `head`, `body`, `h1`, `p`, `img`, `ul`, `a`, etc.
+  - Use of `class` attributes and external CSS
   - Presence of image credits
+  - Working links to other pages
 
-## ⚙️ How It Works
+### 🌐 Web App Interface
+- Teacher-facing web interface built with Flask
+- Upload a CSV with student URLs and instantly view/download:
+  - `grades_output.csv` (summary)
+  - `grades_feedback.html` (detailed clickable feedback)
 
-### Individual Use
-1. Call `generate_feedback_html(url)` with a student's project URL.
-2. An HTML report is returned with detailed feedback.
+### 🔁 Command Line Batch Grading
+- Run `python batch_grader.py data/student_pages.csv`
+- Automatically grades each project and exports:
+  - CSV summary with grades
+  - HTML report with inline comments and structure flags
 
-### Batch Grading
-1. Prepare a CSV file like this:
+---
 
-   ```csv
-   name,url
-   Alice,https://codeprojects.org/your-page
-   Bob,https://codeprojects.org/another-page
+## 🚧 Roadmap (Coming Soon)
 
-Run the batch grader:
+- [ ] Game Lab project analysis (JavaScript/sprite logic detection)
+- [ ] Rubric scoring system with customizable criteria
+- [ ] Option to generate individual student reports
+- [ ] Chromebook-friendly self-check form for students
+- [ ] Teacher dashboard with class overview
 
-bash
-Copy
-Edit
-python batch_grader.py student_pages.csv
-You’ll get:
+---
 
-grades_output.csv — summary feedback for each student
+## 🧪 Technologies Used
 
-grades_feedback.html — full clickable report for all students
+| Tool            | Purpose                          |
+|-----------------|----------------------------------|
+| Python 3        | Core scripting language          |
+| Flask           | Web app interface                |
+| BeautifulSoup   | HTML parsing and tag checking    |
+| Requests        | Link and CSS validation          |
+| CSV / pathlib   | File management                  |
 
-🧪 Technologies Used
-Python 3
+---
 
-Beautiful Soup (HTML parsing)
+## 🗂️ Folder Structure
 
-Requests (link and CSS validation)
+site-sensei/
+├── app.py # Flask entry point
+├── templates/ # HTML templates for web app
+│ └── index.html, results.html, etc.
+├── static/ # Optional styles/scripts
+├── data/ # CSV input/output files
+│ ├── student_pages.csv
+│ ├── grades_output.csv
+│ └── grades_feedback.html
+├── teacher_mode/
+│ └── batch_grader.py # CSV-based grading script
+├── student_mode/
+│ └── webpage_grader.py # Per-student grading logic
+├── shared/
+│ ├── webchecks.py # HTML checks and tag validation
+│ ├── linkchecks.py # Broken link and CSS checkers
+│ └── utils.py # CSV reading, formatting helpers
+└── README.md
 
-📁 Folder Structure
-Copy
-Edit
-web-page-grader/
-├── batch_grader.py
-├── webpage_grader.py
-├── webchecks.py
-├── linkchecks.py
-├── student_pages.csv
-├── grades_output.csv
-└── grades_feedback.html
-🚧 Coming Soon
-Support for JavaScript-based Game Lab projects
+2. Run batch grader
 
-Scoring rubric integration
+python teacher_mode/batch_grader.py data/student_pages.csv
 
-Option for generating individual HTML reports per student
+3. Start the web app
 
-Student-facing web form version (for Chromebook-friendly self-check)
+python app.py
 
-👩‍🏫 Ideal For
-Computer Science teachers using Google Classroom
+Then open your browser to http://127.0.0.1:5000
 
-Students working on Code.org, CodeProjects, or other beginner-friendly web editors
+## 📥 CSV Format Example
 
-📝 License
-MIT License
+name,url
+
+Alice,https://codeprojects.org/your-page
+
+Bob,https://codeprojects.org/another-page
+
+## 🔐 Licensing & Use
+
+Site Sensei is released under the MIT License.
+
+This tool is developed for educational use.
