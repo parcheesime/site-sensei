@@ -58,35 +58,37 @@ Site Sensei provides structured, automated feedback on student web pages. It was
 ---
 
 ## 🗂️ Folder Structure
-
-site-sensei/
-├── app.py # Flask entry point
-├── templates/ # HTML templates for web app
-│ └── index.html, results.html, etc.
-├── static/ # Optional styles/scripts
-├── data/ # CSV input/output files
-│ ├── student_pages.csv
-│ ├── grades_output.csv
-│ └── grades_feedback.html
-├── teacher_mode/
-│ └── batch_grader.py # CSV-based grading script
-├── student_mode/
-│ └── webpage_grader.py # Per-student grading logic
+```
+SITE-SENSEI/
+├── pycache/
+├── .github/
+├── data/
+├── js_grader/
+├── myenv/
 ├── shared/
-│ ├── webchecks.py # HTML checks and tag validation
-│ ├── linkchecks.py # Broken link and CSS checkers
-│ └── utils.py # CSV reading, formatting helpers
-└── README.md
+├── static/
+├── student_mode/
+├── teacher_mode/
+├── templates/
+├── tests/
+├── .gitignore
+├── app.py
+├── LICENSE
+├── README.md
+└── requirements.txt
+```
 
-2. Run batch grader
+1. Run batch grader
 
 python teacher_mode/batch_grader.py data/student_pages.csv
 
-3. Start the web app
+2. Start the web app
 
 python app.py
 
 Then open your browser to http://127.0.0.1:5000
+
+---
 
 ## 📥 CSV Format Example
 
@@ -95,6 +97,8 @@ name,url
 Alice,https://example.com/page1
 
 Bob,https://example.com/page2
+
+---
 
 ## 🔐 Licensing & Use
 
