@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from shared import linkchecks
+from shared import utils
 from shared import webchecks
 from student_mode import webpage_grader
 
@@ -9,17 +9,17 @@ TEST_URL = "https://codeprojects.org/projects/weblab/JONWyX5NqCkqfKdglTZSkoL6S3c
 
 class TestLinkChecks(unittest.TestCase):
     def test_check_localhost(self):
-        self.assertTrue(linkchecks.check_localhost())
+        self.assertTrue(utils.check_localhost())
 
     @patch('requests.get')
     def test_check_connectivity(self, mock_get):
         mock_get.return_value.status_code = 200
-        self.assertTrue(linkchecks.check_connectivity("http://example.com"))
+        self.assertTrue(utils.check_connectivity("http://example.com"))
 
     @patch('requests.get')
     def test_link_status_success(self, mock_get):
         mock_get.return_value.status_code = 200
-        msg = linkchecks.link_status("http://example.com")
+        msg = utils.link_status("http://example.com")
         self.assertIn("Status: 200", msg)
 
 
