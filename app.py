@@ -8,6 +8,16 @@ app = Flask(__name__)
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
+def get_server_config():
+    """Return Flask bind settings from the local or container environment."""
+    debug = os.getenv('FLASK_DEBUG', '').lower() in {'1', 'true', 'yes'}
+    return {
+        'host': os.getenv('FLASK_HOST', '0.0.0.0'),
+        'port': int(os.getenv('PORT', '5000')),
+        'debug': debug,
+    }
+
+
 # 🔐 New login route
 @app.route('/teacher', methods=['GET', 'POST'])
 def teacher_login():
@@ -71,4 +81,4 @@ def home():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(**get_server_config())

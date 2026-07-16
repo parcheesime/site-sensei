@@ -3,9 +3,7 @@ from shared.utils import DEFAULT_REQUEST_TIMEOUT
 import io
 import time
 from PIL import Image
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from shared.browser import create_driver
 
 
 def check_project_is_viewable(url):
@@ -18,16 +16,13 @@ def check_project_is_viewable(url):
 
 
 def screenshot_app(url):
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--window-size=800,600")
-
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.get(url)
-    time.sleep(5)  # Allow time for canvas and sprites to load
-
-    png = driver.get_screenshot_as_png()
-    driver.quit()
+    driver = create_driver()
+    try:
+        driver.get(url)
+        time.sleep(5)  # Allow time for canvas and sprites to load
+        png = driver.get_screenshot_as_png()
+    finally:
+        driver.quit()
 
     return Image.open(io.BytesIO(png))
 

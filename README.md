@@ -93,7 +93,7 @@ Each subsequent row represents one student. A missing `url` is reported as a mis
 python -m pytest
 ```
 
-The current suite contains 15 tests covering shared URL checks, HTML checks, and grader integration.
+The test suite covers shared URL checks, HTML checks, grader integration, and container configuration without requiring Docker or a browser.
 
 ### Optional Experimental Visual Check
 
@@ -104,6 +104,47 @@ python scripts/visual_snapshot_check.py
 ```
 
 The script captures a browser-rendered screenshot under `data/screenshots/` and updates `data/test_feedback.html`. It is a browser-dependent experiment, not complete JavaScript or Game Lab grading.
+
+## 🐳 Docker Compose
+
+Docker provides a local app container and an internal Selenium Chrome service. Docker Desktop with WSL integration (or Docker Engine with the Compose plugin) is required; this is a development foundation, not a finished one-click teacher installer.
+
+Start both services from the repository root:
+
+```bash
+docker compose up --build
+```
+
+Open <http://localhost:5000> to use the Flask interface. The Selenium server is available to the app at `http://selenium:4444` on the internal Compose network and is not published to the host.
+
+The host's `data/` directory is mounted at `/app/data`. Place or upload the teacher CSV as `data/student_pages.csv`. Generated files remain on the teacher's computer at:
+
+- `data/grades_output.csv`
+- `data/grades_feedback.html`
+- `data/screenshots/` and `data/test_feedback.html` when the optional visual utility runs
+
+Run the teacher batch grader inside the app container with:
+
+```bash
+docker compose exec app python teacher_mode/batch_grader.py data/student_pages.csv
+```
+
+Selenium is optional for normal HTML/CSS grading. If an experimental browser check reports that Selenium is unavailable, inspect service health and logs:
+
+```bash
+docker compose ps
+docker compose logs selenium
+```
+
+Chrome images require substantial memory and shared memory. Wait for the Selenium service to become healthy before retrying a visual check. No Selenium debugging port is exposed by default.
+
+Stop and remove the containers without deleting host reports:
+
+```bash
+docker compose down
+```
+
+The WSL/Python Quick Start above remains available for development without Docker.
 
 ---
 
@@ -127,6 +168,7 @@ The script captures a browser-rendered screenshot under `data/screenshots/` and 
 ```text
 site-sensei/
 ├── .github/            # GitHub configuration
+├── .dockerignore       # Docker build-context exclusions
 ├── data/               # CSV inputs, reports, and visual-check output
 ├── js_grader/          # Experimental browser-based grading code
 ├── scripts/            # Manual utilities and Selenium experiments
@@ -136,6 +178,8 @@ site-sensei/
 ├── teacher_mode/       # Batch grading logic
 ├── templates/          # Flask HTML templates
 ├── tests/              # pytest test suite
+├── compose.yaml        # App and Selenium services
+├── Dockerfile          # Python application image
 ├── app.py              # Flask application entry point
 ├── LICENSE
 ├── README.md

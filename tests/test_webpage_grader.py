@@ -2,7 +2,9 @@ import unittest
 from unittest.mock import Mock, patch
 from shared import utils
 from shared import webchecks
+from shared import browser
 from student_mode import webpage_grader
+import app as flask_app
 
 TEST_URL = "https://codeprojects.org/projects/weblab/JONWyX5NqCkqfKdglTZSkoL6S3cHatmg3MFurTWWDXY"
 
@@ -108,18 +110,61 @@ class TestGraderIntegration(unittest.TestCase):
     @patch('student_mode.webpage_grader.count_broken_tags', return_value={})
     @patch('student_mode.webpage_grader.get_css_file_url', return_value=None)
     @patch('student_mode.webpage_grader.requests.get')
+    @patch('student_mode.webpage_grader.has_image_credit', return_value=True)
     @patch('student_mode.webpage_grader.check_page_link', return_value='link status')
     @patch('student_mode.webpage_grader.get_links', return_value=['about.html'])
     @patch('student_mode.webpage_grader.get_class', return_value='CSS UPDATE')
     @patch('student_mode.webpage_grader.get_tags', return_value={})
     def test_generate_feedback_html_format(self, mock_tags, mock_class, mock_links,
-                                           mock_page_link, mock_get, mock_css_url,
-                                           mock_broken_tags, mock_comments):
+                                           mock_page_link, mock_image_credit,
+                                           mock_get, mock_css_url, mock_broken_tags,
+                                           mock_comments):
         mock_get.return_value.text = '<h1>Title</h1>'
         mock_get.return_value.raise_for_status = Mock()
         html_output = webpage_grader.generate_feedback_html("https://www.example.com")
         self.assertIn("<ul>", html_output)
         self.assertIn("https://www.example.com", html_output)
+
+
+class TestContainerConfiguration(unittest.TestCase):
+    @patch.dict('os.environ', {}, clear=True)
+    def test_default_flask_bind_configuration(self):
+        self.assertEqual(flask_app.get_server_config(), {
+            'host': '0.0.0.0',
+            'port': 5000,
+            'debug': False,
+        })
+
+    @patch.dict('os.environ', {
+        'FLASK_HOST': '127.0.0.1',
+        'PORT': '5050',
+        'FLASK_DEBUG': 'true',
+    }, clear=True)
+    def test_environment_flask_bind_configuration(self):
+        self.assertEqual(flask_app.get_server_config(), {
+            'host': '127.0.0.1',
+            'port': 5050,
+            'debug': True,
+        })
+
+    @patch('shared.browser.webdriver.Remote')
+    @patch.dict('os.environ', {'SELENIUM_URL': 'http://selenium:4444'}, clear=True)
+    def test_remote_selenium_url_selection(self, mock_remote):
+        driver = browser.create_driver()
+        self.assertIs(driver, mock_remote.return_value)
+        self.assertEqual(
+            mock_remote.call_args.kwargs['command_executor'],
+            'http://selenium:4444',
+        )
+
+    @patch('shared.browser.webdriver.Remote', side_effect=Exception('offline'))
+    @patch.dict('os.environ', {'SELENIUM_URL': 'http://selenium:4444'}, clear=True)
+    def test_remote_selenium_unavailable_is_controlled(self, mock_remote):
+        with self.assertRaisesRegex(
+            browser.BrowserUnavailableError,
+            'Selenium browser is unavailable',
+        ):
+            browser.create_driver()
 
 
 if __name__ == '__main__':
