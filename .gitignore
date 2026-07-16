@@ -120,7 +120,5 @@ csv_file.csv
 grades_output.csv
 grades_feedback.html
 *.bak
-<<<<<<< HEAD
-=======
-/myenv
->>>>>>> 81e86c7 (initial commit)
+
+.venv/
