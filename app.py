@@ -1,10 +1,12 @@
 from flask import Flask, request, render_template, send_file, redirect, url_for, flash
 from teacher_mode.batch_grader import grade_from_csv
+from student_mode.webpage_grader import generate_feedback_html
 from shared.utils import DEFAULT_REQUEST_TIMEOUT
 import requests
 import os
 
 app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'site-sensei-development-only')
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
@@ -73,6 +75,30 @@ def download_csv():
 @app.route('/download/html')
 def download_html():
     return send_file(os.path.join(DATA_DIR, 'grades_feedback.html'), as_attachment=False)
+
+@app.route('/student', methods=['GET', 'POST'])
+def student_upload():
+    if request.method == 'POST':
+        url = request.form.get('url', '').strip()
+
+        if not url:
+            flash('Please enter a project URL.')
+            return render_template('student_upload.html', submitted_url=url)
+
+        try:
+            feedback_html = generate_feedback_html(url)
+
+            return render_template(
+                'student_results.html',
+                submitted_url=url,
+                feedback_html=feedback_html,
+            )
+
+        except Exception as e:
+            flash(f'Unable to grade webpage: {e}')
+            return render_template('student_upload.html', submitted_url=url)
+
+    return render_template('student_upload.html')
 
 
 @app.route('/')

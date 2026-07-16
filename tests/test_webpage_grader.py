@@ -126,6 +126,42 @@ class TestGraderIntegration(unittest.TestCase):
         self.assertIn("https://www.example.com", html_output)
 
 
+class TestStudentRoutes(unittest.TestCase):
+    def setUp(self):
+        flask_app.app.config.update(TESTING=True, SECRET_KEY='test-secret')
+        self.client = flask_app.app.test_client()
+
+    def test_get_student_returns_upload_page(self):
+        response = self.client.get('/student')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Student Self Check', response.data)
+
+    def test_blank_url_returns_upload_page_with_validation_message(self):
+        response = self.client.post('/student', data={'url': '   '})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Please enter a project URL.', response.data)
+        self.assertIn(b'Student Self Check', response.data)
+
+    @patch('app.generate_feedback_html', return_value='<p>Grader result</p>')
+    def test_valid_url_calls_grader_and_renders_results(self, mock_grader):
+        url = 'https://student.example/project'
+
+        response = self.client.post('/student', data={'url': f'  {url}  '})
+
+        self.assertEqual(response.status_code, 200)
+        mock_grader.assert_called_once_with(url)
+        self.assertIn(b'Student Feedback', response.data)
+        self.assertIn(url.encode(), response.data)
+        self.assertIn(b'<p>Grader result</p>', response.data)
+
+    def test_teacher_routes_remain_available(self):
+        for route in ('/teacher', '/teacher-batch', '/teacher-results'):
+            with self.subTest(route=route):
+                self.assertEqual(self.client.get(route).status_code, 200)
+
+
 class TestContainerConfiguration(unittest.TestCase):
     @patch.dict('os.environ', {}, clear=True)
     def test_default_flask_bind_configuration(self):

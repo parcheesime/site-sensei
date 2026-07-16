@@ -10,13 +10,19 @@
 <body>
   <div class="container">
     <img src="{{ url_for('static', filename='assets/owl_logo.png') }}" alt="SiteSensei Owl Logo" class="logo" />
-    <h1 class="title">Site Sensei</h1>
-    <p class="subtitle">A code evaluation tool for<br>teachers and students</p>
+      <h1 class="title">Site Sensei</h1>
 
-    <div class="button-container">
-     <a href="/teacher" class="btn teacher">Teacher<br><span>login required</span></a>
-      <a href="/student" class="btn student">Student</a>
-    </div>
+      <p class="subtitle">Choose how you'd like to use Site Sensei.</p>
+
+      <div class="button-container">
+          <a class="btn student" href="{{ url_for('student_upload') }}">
+              Student Self Check<span>check one webpage</span>
+          </a>
+
+          <a class="btn teacher" href="{{ url_for('teacher_login') }}">
+              Teacher Login<span>batch grading</span>
+          </a>
+      </div>
   </div>
 </body>
 </html>

@@ -66,6 +66,7 @@ def generate_smart_feedback(tag_counts):
 
 
 def generate_feedback_html(url):
+    escaped_url = html.escape(url, quote=True)
     tag_counts = get_tags(url, list(smart_explanations.keys()))
     class_message = get_class(url)
     listof_links = get_links(url)
@@ -150,7 +151,7 @@ def generate_feedback_html(url):
 
     # Final render
     return f'''
-    <h3><a href="{url}" target="_blank">{url}</a></h3>
+    <h3><a href="{escaped_url}" target="_blank" rel="noopener noreferrer">{escaped_url}</a></h3>
     <ul>{summary_html}</ul>
     <ul>{detail_html}{smart_feedback}</ul>
     <hr>\n

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Feedback | Site Sensei</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <h1>Student Feedback</h1>
+
+        <p>
+            Project:
+            <a href="{{ submitted_url }}" target="_blank" rel="noopener noreferrer">
+                {{ submitted_url }}
+            </a>
+        </p>
+
+        <section aria-labelledby="feedback-heading">
+            <h2 id="feedback-heading">Webpage review</h2>
+            {{ feedback_html | safe }}
+        </section>
+
+        <p>
+            <a href="{{ url_for('student_upload') }}">
+                Check another webpage
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('home') }}">
+                Return home
+            </a>
+        </p>
+    </main>
+</body>
+</html>
