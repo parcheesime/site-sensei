@@ -26,6 +26,11 @@ Author: Sensei Trepte
 """
 
 # Imports
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from shared.webchecks import (
     count_broken_tags, count_comments, get_tags,
     get_css_file_url, check_css_properties
@@ -34,7 +39,6 @@ from shared.utils import DEFAULT_REQUEST_TIMEOUT
 import requests
 from bs4 import BeautifulSoup
 import csv
-from pathlib import Path
 from student_mode.webpage_grader import generate_feedback_html
 
 

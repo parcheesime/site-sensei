@@ -1,9 +1,11 @@
-import re, io, time, requests
+import re, io, time
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from PIL import Image
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from shared.browser import create_driver
 
 # === CONFIG ===
 project_url = "https://studio.code.org/projects/gamelab/ZTN1UoLQ77vrf_uiTWAVdPuAQoaeQeiOTK96oaX99Ok"
@@ -16,14 +18,13 @@ def sanitize_filename(name):
 
 
 def screenshot_app(url):
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--window-size=800,600")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.get(url)
-    time.sleep(5)
-    png = driver.get_screenshot_as_png()
-    driver.quit()
+    driver = create_driver()
+    try:
+        driver.get(url)
+        time.sleep(5)
+        png = driver.get_screenshot_as_png()
+    finally:
+        driver.quit()
     return Image.open(io.BytesIO(png))
 
 
