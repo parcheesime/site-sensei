@@ -1,6 +1,6 @@
 # 🧠 Site Sensei
 
-**Site Sensei** is a free and open-source grading tool that helps students and teachers evaluate web development projects. It currently supports HTML and CSS analysis and is built for **educational purposes**.
+**Site Sensei** is a grading tool that helps students and teachers evaluate web development projects. It currently supports HTML and CSS analysis and is built for **educational purposes**.
 
 ---
 
