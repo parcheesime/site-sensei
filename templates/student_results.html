@@ -7,32 +7,35 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <main class="container">
-        <h1>Student Feedback</h1>
+    <main class="student-report">
+        <header class="student-report__header">
+            <p class="student-report__eyebrow">Student Self Check</p>
+            <h1>Student Feedback</h1>
+            {% if submitted_url not in feedback_html %}
+                <p class="student-report__url">
+                    Project:
+                    <a href="{{ submitted_url }}" target="_blank" rel="noopener noreferrer">
+                        {{ submitted_url }}
+                    </a>
+                </p>
+            {% endif %}
+        </header>
 
-        <p>
-            Project:
-            <a href="{{ submitted_url }}" target="_blank" rel="noopener noreferrer">
-                {{ submitted_url }}
-            </a>
-        </p>
-
-        <section aria-labelledby="feedback-heading">
+        <section class="student-report__panel" aria-labelledby="feedback-heading">
             <h2 id="feedback-heading">Webpage review</h2>
-            {{ feedback_html | safe }}
+            <div class="student-report__content">
+                {{ feedback_html | safe }}
+            </div>
         </section>
 
-        <p>
-            <a href="{{ url_for('student_upload') }}">
+        <nav class="student-report__actions" aria-label="Student feedback actions">
+            <a class="student-report__button" href="{{ url_for('student_upload') }}">
                 Check another webpage
             </a>
-        </p>
-
-        <p>
-            <a href="{{ url_for('home') }}">
+            <a class="student-report__secondary-link" href="{{ url_for('home') }}">
                 Return home
             </a>
-        </p>
+        </nav>
     </main>
 </body>
 </html>

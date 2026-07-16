@@ -85,3 +85,121 @@ body {
   font-weight: bold;
   margin-bottom: 1rem;
 }
+
+.student-report {
+  box-sizing: border-box;
+  width: min(100% - 2rem, 900px);
+  margin-inline: auto;
+  padding: 3rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.student-report__header {
+  margin-bottom: 2rem;
+}
+
+.student-report__eyebrow {
+  margin: 0 0 0.4rem;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.student-report__header h1 {
+  margin: 0;
+}
+
+.student-report__url {
+  margin: 0.75rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.student-report__panel {
+  padding: 1.5rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.student-report__panel h2 {
+  margin: 0 0 1.25rem;
+}
+
+.student-report__content {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.student-report__content h3 {
+  margin: 0 0 1.25rem;
+  font-size: 1rem;
+}
+
+.student-report__content ul,
+.student-report__content ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.student-report__content ul ul,
+.student-report__content ul ol,
+.student-report__content ol ul,
+.student-report__content ol ol {
+  margin: 0.35rem 0;
+  padding-left: 1.5rem;
+}
+
+.student-report__content li {
+  margin: 0.35rem 0;
+  padding-left: 0.1rem;
+}
+
+.student-report__content hr {
+  margin: 1.5rem 0 0;
+  border: 0;
+  border-top: 1px solid #e2e2e2;
+}
+
+.student-report__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.student-report__button {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  border: 2px solid #c2185b;
+  border-radius: 0.5rem;
+  background: #c2185b;
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.student-report__button:hover,
+.student-report__button:focus-visible {
+  background: #9f144b;
+  border-color: #9f144b;
+}
+
+.student-report__secondary-link {
+  color: #444;
+}
+
+@media (max-width: 600px) {
+  .student-report {
+    width: min(100% - 1.5rem, 900px);
+    padding: 1.5rem 0;
+  }
+
+  .student-report__panel {
+    padding: 1rem;
+  }
+}

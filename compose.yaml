@@ -7,6 +7,7 @@ services:
     environment:
       PORT: "5000"
       SELENIUM_URL: http://selenium:4444
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-site-sensei-development-only}
     ports:
       - "5000:5000"
     volumes:

@@ -6,7 +6,17 @@ import requests
 import os
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'site-sensei-development-only')
+
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+
+if not app.secret_key:
+    if not app.debug:
+        raise RuntimeError(
+            "FLASK_SECRET_KEY must be configured."
+        )
+
+    app.secret_key = "site-sensei-development-only"
+
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
