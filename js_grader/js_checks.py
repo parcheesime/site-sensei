@@ -1,4 +1,5 @@
 import requests
+from shared.utils import DEFAULT_REQUEST_TIMEOUT
 import io
 import time
 from PIL import Image
@@ -9,7 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 def check_project_is_viewable(url):
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
         return response.status_code == 200
     except Exception as e:
         print(f"⚠️ Could not connect to {url}: {e}")

@@ -30,6 +30,7 @@ from shared.webchecks import (
     count_broken_tags, count_comments, get_tags,
     get_css_file_url, check_css_properties
 )
+from shared.utils import DEFAULT_REQUEST_TIMEOUT
 import requests
 from bs4 import BeautifulSoup
 import csv
@@ -71,7 +72,7 @@ def analyze_student_row(row):
         tag_counts = {}
 
     try:
-        h1_text = BeautifulSoup(requests.get(url).text, 'html.parser')\
+        h1_text = BeautifulSoup(requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT).text, 'html.parser')\
                     .find('h1').get_text(strip=True)
     except Exception:
         h1_text = "Missing"

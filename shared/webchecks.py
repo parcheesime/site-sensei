@@ -21,6 +21,7 @@ import webbrowser
 import requests
 from bs4 import BeautifulSoup
 from collections import Counter
+from shared.utils import DEFAULT_REQUEST_TIMEOUT
 
 # Ignore SSL certificate errors
 ctx = ssl.create_default_context()
@@ -31,7 +32,7 @@ ctx.verify_mode = ssl.CERT_NONE
 # Retrieve tags frequency dictionary, according to list of tags
 def get_tags(url, tag_list):
     try:
-        html = urllib.request.urlopen(url, context=ctx).read()
+        html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
     except Exception:
         return {tag: 0 for tag in tag_list}
 
@@ -50,7 +51,7 @@ def count_broken_tags(url):
         dict: Tag mismatch counts (tag -> difference in open/close).
     """
     try:
-        html = urllib.request.urlopen(url, context=ctx).read().decode('utf-8')
+        html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read().decode('utf-8')
         open_tags = re.findall(r'<([a-zA-Z0-9]+)(\s|>)', html)
         close_tags = re.findall(r'</([a-zA-Z0-9]+)>', html)
 
@@ -71,7 +72,7 @@ def count_broken_tags(url):
 # Check for CSS clss selectors, using requests.get
 def get_class(url):
     try:
-        page = requests.get(url)
+        page = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
     except Exception:
         return Exception
     data = page.text
@@ -83,7 +84,7 @@ def get_class(url):
 # Get list of URL on webpage
 def get_links(url):
     try:
-        html = urllib.request.urlopen(url, context=ctx).read()
+        html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
     except Exception:
         return Exception
     soup = BeautifulSoup(html, 'html.parser')
@@ -94,7 +95,7 @@ def get_links(url):
 
 
 def has_image_credit(url):
-    html = urllib.request.urlopen(url, context=ctx).read()
+    html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
     soup = BeautifulSoup(html, 'html.parser')
     paragraphs = soup.find_all('p')
     for p in paragraphs:
@@ -114,7 +115,7 @@ def count_comments(url):
         int: Number of HTML comments.
     """
     try:
-        html = urllib.request.urlopen(url, context=ctx).read()
+        html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
         soup = BeautifulSoup(html, 'html.parser')
         comments = soup.find_all(string=lambda text: isinstance(text, type(soup.comment)))
         return len(comments)
@@ -125,7 +126,7 @@ def count_comments(url):
 def get_css_file_url(url):
     try:
         # Load HTML
-        html_bytes = urllib.request.urlopen(url, context=ctx).read()
+        html_bytes = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
         html_string = html_bytes.decode("utf-8")
 
         # Match student-linked style.css (case-insensitive)
@@ -158,7 +159,7 @@ def check_css_properties(css_url, required_props=None):
         ]
 
     try:
-        css_text = requests.get(css_url).text
+        css_text = requests.get(css_url, timeout=DEFAULT_REQUEST_TIMEOUT).text
         selector_count = css_text.count('{')
     except Exception as e:
         return {

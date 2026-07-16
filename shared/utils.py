@@ -16,6 +16,8 @@ import ssl
 import socket
 import requests
 
+DEFAULT_REQUEST_TIMEOUT = 10
+
 # Ignore SSL certificate errors
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
@@ -30,7 +32,7 @@ def check_localhost():
 
 # Check links on page connectivity
 def check_connectivity(url):
-    request = requests.get(url)
+    request = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
     return request.status_code == 200
 
 

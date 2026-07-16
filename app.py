@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, send_file, redirect, url_for, flash
 from teacher_mode.batch_grader import grade_from_csv
+from shared.utils import DEFAULT_REQUEST_TIMEOUT
 import requests
 import os
 
@@ -30,7 +31,7 @@ def teacher_batch():
             uploaded_file.save(input_csv_path)
         elif sheet_link:
             try:
-                response = requests.get(sheet_link)
+                response = requests.get(sheet_link, timeout=DEFAULT_REQUEST_TIMEOUT)
                 with open(input_csv_path, 'w', encoding='utf-8') as f:
                     f.write(response.text)
             except Exception as e:

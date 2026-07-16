@@ -30,6 +30,7 @@ from shared.webchecks import (
     check_css_properties, has_image_credit,
     count_broken_tags, count_comments
 )
+from shared.utils import DEFAULT_REQUEST_TIMEOUT
 from shared.utils import link_status
 
 
@@ -76,7 +77,7 @@ def generate_feedback_html(url):
 
     # Load page for title
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
         response.raise_for_status()  # This will throw if 404
         html_content = response.text
 
