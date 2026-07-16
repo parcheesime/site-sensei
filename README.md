@@ -156,6 +156,10 @@ site-sensei/
 
 ## 🔐 Licensing & Use
 
-Site Sensei is released under the MIT License.
+### Notice
 
-This tool is developed for educational use.
+SiteSensei is visible for portfolio, demonstration, planning, and discussion purposes only.
+
+No license is granted to reuse the code, documentation, database schema, architecture, prompts, workflows, or educational knowledge model.
+
+Contact the copyright holder for licensing inquiries.
