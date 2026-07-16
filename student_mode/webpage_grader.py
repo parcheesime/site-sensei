@@ -31,7 +31,7 @@ from shared.webchecks import (
     count_broken_tags, count_comments
 )
 from shared.utils import DEFAULT_REQUEST_TIMEOUT
-from shared.utils import link_status
+from shared.utils import check_page_link, check_project_url
 
 
 # Smart tag explanations
@@ -70,7 +70,7 @@ def generate_feedback_html(url):
     class_message = get_class(url)
     listof_links = get_links(url)
     page_links = [url + link for link in listof_links]
-    page_links_status_messages = [link_status(link) for link in page_links if "html" in link]
+    page_links_status_messages = [check_page_link(link) for link in page_links if "html" in link]
 
     summary_items = []
     detail_items = []
@@ -160,10 +160,10 @@ def generate_feedback_html(url):
 def grade_student(url):
     tag_counts = get_tags(url, tags)
     class_message = get_class(url)
-    url_status = link_status(url)
+    url_status = check_project_url(url)
     listof_links = get_links(url)
     page_links = [url + link for link in listof_links if "html" in link]
-    page_links_status_messages = [link_status(link) for link in page_links]
+    page_links_status_messages = [check_page_link(link) for link in page_links]
 
     summary_items = []
 

@@ -30,14 +30,7 @@ def check_localhost():
     return localhost == '127.0.0.1'
 
 
-# Check links on page connectivity
-def check_connectivity(url):
-    request = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
-    return request.status_code == 200
-
-
-# check for broken links, put messages in list
-def link_status(url):
+def _url_status_message(url):
     try:
         page = requests.get(url, timeout=5)
         response_code = page.status_code
@@ -48,6 +41,16 @@ def link_status(url):
         return f"URL Connection UPDATE: <br> {url} <br> Status: 200 <br> Request Succeeded."
     else:
         return f"URL Connection UPDATE: <br> {url} <br> Status: {response_code} <br> Request Failed. Check Link."
+
+
+def check_project_url(url):
+    """Check the submitted project URL and return its user-facing status message."""
+    return _url_status_message(url)
+
+
+def check_page_link(url):
+    """Check a link discovered in a project page and return its status message."""
+    return _url_status_message(url)
 
 
 def clean_url(url):
