@@ -19,9 +19,21 @@ Site Sensei provides structured, automated feedback on student web pages. It was
 
 - Detects and evaluates:
   - HTML structure: `head`, `body`, `h1`, `p`, `img`, `ul`, `a`, etc.
+  - Number of different HTML tag types, with a current target of 8 or more
+  - Number of different CSS properties, with a current target of 8 or more
   - Use of `class` attributes and external CSS
   - Presence of image credits
   - Working links to other pages
+
+## 📋 Current Grading Profile
+
+Site Sensei's current built-in checks are based on the **HTML Mini Web Page - Project Rubric**, which was previously used in a middle school web-development course. The included [example classroom rubric](rubrics/html-mini-web-page-rubric.pdf) provides the source context for targets such as eight different HTML tag types, common heading/paragraph/image/list elements, minimal syntax errors, eight different CSS properties, and separate HTML and CSS files.
+
+Site Sensei automates only criteria that can reasonably be evaluated from a retrieved webpage. Current checks cover observable HTML elements, HTML tag variety, CSS property variety, external stylesheet detection, tag mismatches, comments, classes, image-credit text, and linked HTML pages. These checks provide deterministic feedback; they do not evaluate the entire rubric.
+
+Teacher review is still required for peer feedback, student reflection, adherence to a planning document, and subjective judgments about code readability or formatting. The PDF is an example rubric, not a claim that every criterion is automatically graded.
+
+Planned rubric support will let teachers and students upload assignment rubrics and use them to configure rubric-driven HTML and CSS checks. Rubric uploading and parsing are not implemented yet.
 
 ### 🌐 Web App Interface
 
@@ -191,7 +203,8 @@ site-sensei/
 ## 🚧 Roadmap (Coming Soon)
 
 - [ ] Game Lab project analysis (JavaScript/sprite logic detection)
-- [ ] Rubric scoring system with customizable criteria
+- [ ] Teacher and student rubric uploads
+- [ ] Rubric-driven HTML and CSS grading profiles
 - [ ] Option to generate individual student reports
 - [ ] Chromebook-friendly self-check form for students
 - [ ] Teacher dashboard with class overview

@@ -23,15 +23,14 @@ Dependencies:
 """
 
 import html
-import requests
+import urllib.parse
 from bs4 import BeautifulSoup
 from shared.webchecks import (
     get_links, get_class, get_tags, get_css_file_url,
     check_css_properties, has_image_credit,
     count_broken_tags, count_comments
 )
-from shared.utils import DEFAULT_REQUEST_TIMEOUT
-from shared.utils import check_page_link, check_project_url
+from shared.utils import check_page_link, get_page_status
 
 
 # Smart tag explanations
@@ -51,12 +50,43 @@ smart_explanations = {
 
 
 tags = list(smart_explanations.keys())
+HTML_TAG_TYPE_TARGET = 8
+CSS_PROPERTY_TARGET = 8
+
+
+def get_html_page_links(base_url, links):
+    """Return valid, absolute links whose URL path targets an HTML page."""
+    page_links = []
+    for link in links:
+        if not isinstance(link, str) or not link.strip():
+            continue
+
+        absolute_url = urllib.parse.urljoin(base_url, link)
+        path = urllib.parse.urlparse(absolute_url).path.lower()
+        if path.endswith(('.html', '.htm')):
+            page_links.append(absolute_url)
+
+    return page_links
+
+
+def render_page_status(url, page_status):
+    """Render the submitted URL and its retrieval status for either grading mode."""
+    escaped_url = html.escape(url, quote=True)
+    escaped_label = html.escape(page_status['label'])
+    status_html = (
+        f'<h3><a href="{escaped_url}" target="_blank" rel="noopener noreferrer">'
+        f'{escaped_url}</a></h3>\n'
+        f'<p><strong>{escaped_label}</strong></p>\n'
+    )
+    if page_status['message']:
+        status_html += f"<p>{html.escape(page_status['message'])}</p>\n"
+    return status_html
 
 
 def generate_smart_feedback(tag_counts):
     missing = [tag for tag in tags if tag_counts.get(tag, 0) == 0]
     if not missing:
-        return "🎉 Great job! You included all required HTML tags."
+        return "🎉 Great job! You included every HTML tag type checked by Site Sensei."
     feedback = "<strong>Suggestions for Missing Tags:</strong><ul>"
     for tag in missing:
         suggestion = smart_explanations.get(tag, "Consider adding this tag to improve your page.")
@@ -65,24 +95,26 @@ def generate_smart_feedback(tag_counts):
     return feedback
 
 
-def generate_feedback_html(url):
-    escaped_url = html.escape(url, quote=True)
+def generate_feedback_html(url, page_status=None):
+    if page_status is None:
+        page_status = get_page_status(url)
+
+    status_html = render_page_status(url, page_status)
+    if not page_status['ok']:
+        return f'{status_html}<hr>\n'
+
     tag_counts = get_tags(url, list(smart_explanations.keys()))
     class_message = get_class(url)
     listof_links = get_links(url)
-    page_links = [url + link for link in listof_links]
-    page_links_status_messages = [check_page_link(link) for link in page_links if "html" in link]
+    page_links = get_html_page_links(url, listof_links)
+    page_links_status_messages = [check_page_link(link) for link in page_links]
 
     summary_items = []
     detail_items = []
 
-    # Load page for title
+    # The successful status request also supplies the page used for title parsing.
     try:
-        response = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
-        response.raise_for_status()  # This will throw if 404
-        html_content = response.text
-
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(page_status['content'], 'html.parser')
         h1_elements = soup.find_all('h1')
         if h1_elements:
             title_text = h1_elements[0].get_text(strip=True)
@@ -102,6 +134,12 @@ def generate_feedback_html(url):
     )
 
     # Tag tallies
+    html_tag_type_count = sum(1 for tag in tags if tag_counts.get(tag, 0) > 0)
+    tag_target_icon = "✔️" if html_tag_type_count >= HTML_TAG_TYPE_TARGET else "❌"
+    summary_items.append(
+        f"{tag_target_icon} HTML tag types: {html_tag_type_count} "
+        f"(target: {HTML_TAG_TYPE_TARGET}+)"
+    )
     summary_items.append(f"✔️ Paragraphs: {tag_counts.get('p', 0)}")
     summary_items.append(f"✔️ Lists: {tag_counts.get('li', 0)} items")
     summary_items.append(f"✔️ Images: {tag_counts.get('img', 0)}")
@@ -110,8 +148,13 @@ def generate_feedback_html(url):
     css_url = get_css_file_url(url)
     if css_url:
         css_check = check_css_properties(css_url)
+        css_property_count = len(css_check['used'])
+        css_target_icon = "✔️" if css_property_count >= CSS_PROPERTY_TARGET else "❌"
         summary_items.append(f"✔️ CSS Selectors: {css_check['selector_count']}")
-        summary_items.append(f"✔️ Unique CSS Properties: {len(css_check['used'])}")
+        summary_items.append(
+            f"{css_target_icon} CSS properties: {css_property_count} "
+            f"(target: {CSS_PROPERTY_TARGET}+)"
+        )
         detail_items.append(css_check['message'])
     else:
         summary_items.append("❌ No external CSS file found.")
@@ -151,19 +194,27 @@ def generate_feedback_html(url):
 
     # Final render
     return f'''
-    <h3><a href="{escaped_url}" target="_blank" rel="noopener noreferrer">{escaped_url}</a></h3>
+    {status_html}
     <ul>{summary_html}</ul>
     <ul>{detail_html}{smart_feedback}</ul>
     <hr>\n
     '''
 
 
-def grade_student(url):
+def grade_student(url, page_status=None):
+    if page_status is None:
+        page_status = get_page_status(url)
+    if not page_status['ok']:
+        return {
+            'url_status': page_status['label'],
+            'class_message': page_status['message'],
+            'feedback': '❌ Page not analyzed',
+        }
+
     tag_counts = get_tags(url, tags)
     class_message = get_class(url)
-    url_status = check_project_url(url)
     listof_links = get_links(url)
-    page_links = [url + link for link in listof_links if "html" in link]
+    page_links = get_html_page_links(url, listof_links)
     page_links_status_messages = [check_page_link(link) for link in page_links]
 
     summary_items = []
@@ -194,7 +245,7 @@ def grade_student(url):
         summary_items.append("❌ No HTML Link")
 
     return {
-        "url_status": url_status,
+        "url_status": page_status['label'],
         "class_message": class_message,
         "feedback": " | ".join(summary_items)
     }

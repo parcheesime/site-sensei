@@ -14,6 +14,7 @@ Originally adapted from the Google IT Automation with Python course.
 
 import ssl
 import socket
+from http import HTTPStatus
 import requests
 
 DEFAULT_REQUEST_TIMEOUT = 10
@@ -51,6 +52,67 @@ def check_project_url(url):
 def check_page_link(url):
     """Check a link discovered in a project page and return its status message."""
     return _url_status_message(url)
+
+
+def get_page_status(url):
+    """Fetch a webpage once and return a structured, user-facing status."""
+    try:
+        response = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
+    except requests.exceptions.Timeout:
+        return {
+            'ok': False,
+            'status_code': None,
+            'reason': None,
+            'label': 'Connection Error',
+            'message': 'Site Sensei could not reach this webpage because the request timed out.',
+            'content': None,
+        }
+    except requests.exceptions.ConnectionError:
+        return {
+            'ok': False,
+            'status_code': None,
+            'reason': None,
+            'label': 'Connection Error',
+            'message': 'Site Sensei could not reach this webpage.',
+            'content': None,
+        }
+    except requests.exceptions.RequestException:
+        return {
+            'ok': False,
+            'status_code': None,
+            'reason': None,
+            'label': 'Connection Error',
+            'message': 'Site Sensei could not reach this webpage.',
+            'content': None,
+        }
+
+    status_code = response.status_code
+    reason = response.reason
+    if not isinstance(reason, str) or not reason:
+        try:
+            reason = HTTPStatus(status_code).phrase
+        except ValueError:
+            reason = 'Unknown Status'
+
+    label = f'HTTP Status: {status_code} {reason}'
+    ok = 200 <= status_code < 300
+    if ok:
+        message = None
+    elif status_code == 403:
+        message = 'Site Sensei could not analyze this page because the server blocked the request.'
+    elif status_code == 404:
+        message = 'Site Sensei could not find this page.'
+    else:
+        message = 'Site Sensei could not analyze this page because the request was unsuccessful.'
+
+    return {
+        'ok': ok,
+        'status_code': status_code,
+        'reason': reason,
+        'label': label,
+        'message': message,
+        'content': response.text,
+    }
 
 
 def clean_url(url):

@@ -16,6 +16,7 @@ import re
 import ssl
 import urllib.parse
 import urllib.request
+import urllib.error
 from pathlib import Path
 import webbrowser
 import requests
@@ -73,8 +74,8 @@ def count_broken_tags(url):
 def get_class(url):
     try:
         page = requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT)
-    except Exception:
-        return Exception
+    except requests.RequestException:
+        return "❌ Class usage could not be checked because the page could not be loaded."
     data = page.text
     data = data.split()
     count_class = [ele for ele in data if 'class' in ele]
@@ -85,17 +86,21 @@ def get_class(url):
 def get_links(url):
     try:
         html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
-    except Exception:
-        return Exception
+    except (OSError, urllib.error.URLError, ValueError):
+        return []
     soup = BeautifulSoup(html, 'html.parser')
     # Retrieve anchor tags, make a list of urls
     tags = soup('a')
-    urllist = [tag.get('href', None) for tag in tags]
+    urllist = [href for tag in tags if isinstance((href := tag.get('href')), str)]
     return urllist
 
 
 def has_image_credit(url):
-    html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
+    try:
+        html = urllib.request.urlopen(url, context=ctx, timeout=DEFAULT_REQUEST_TIMEOUT).read()
+    except (OSError, urllib.error.URLError, ValueError):
+        return False
+
     soup = BeautifulSoup(html, 'html.parser')
     paragraphs = soup.find_all('p')
     for p in paragraphs:

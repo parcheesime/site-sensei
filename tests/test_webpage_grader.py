@@ -1,12 +1,39 @@
+import csv
+import tempfile
 import unittest
-from unittest.mock import Mock, patch
+import urllib.error
+from pathlib import Path
+from unittest.mock import patch
 from shared import utils
 from shared import webchecks
 from shared import browser
 from student_mode import webpage_grader
+from teacher_mode import batch_grader
 import app as flask_app
 
 TEST_URL = "https://codeprojects.org/projects/weblab/JONWyX5NqCkqfKdglTZSkoL6S3cHatmg3MFurTWWDXY"
+
+
+def successful_page_status(content='<h1>Title</h1>'):
+    return {
+        'ok': True,
+        'status_code': 200,
+        'reason': 'OK',
+        'label': 'HTTP Status: 200 OK',
+        'message': None,
+        'content': content,
+    }
+
+
+def failed_page_status(status_code, reason, message):
+    return {
+        'ok': False,
+        'status_code': status_code,
+        'reason': reason,
+        'label': f'HTTP Status: {status_code} {reason}',
+        'message': message,
+        'content': '',
+    }
 
 
 class TestLinkChecks(unittest.TestCase):
@@ -52,6 +79,60 @@ class TestLinkChecks(unittest.TestCase):
         msg = utils.check_page_link("http://example.com/about.html")
         self.assertIn("Error connecting", msg)
 
+    @patch('shared.utils.requests.get')
+    def test_page_status_200_ok(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.reason = 'OK'
+        mock_get.return_value.text = '<h1>Working page</h1>'
+
+        result = utils.get_page_status('https://www.example.com')
+
+        self.assertTrue(result['ok'])
+        self.assertEqual(result['label'], 'HTTP Status: 200 OK')
+        self.assertEqual(result['content'], '<h1>Working page</h1>')
+
+    @patch('shared.utils.requests.get')
+    def test_page_status_403_forbidden(self, mock_get):
+        mock_get.return_value.status_code = 403
+        mock_get.return_value.reason = 'Forbidden'
+        mock_get.return_value.text = ''
+
+        result = utils.get_page_status('https://www.example.com')
+
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['label'], 'HTTP Status: 403 Forbidden')
+        self.assertIn('server blocked the request', result['message'])
+
+    @patch('shared.utils.requests.get')
+    def test_page_status_404_not_found(self, mock_get):
+        mock_get.return_value.status_code = 404
+        mock_get.return_value.reason = 'Not Found'
+        mock_get.return_value.text = ''
+
+        result = utils.get_page_status('https://www.example.com/missing')
+
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['label'], 'HTTP Status: 404 Not Found')
+        self.assertIn('could not find this page', result['message'])
+
+    @patch('shared.utils.requests.get',
+           side_effect=utils.requests.exceptions.Timeout)
+    def test_page_status_timeout(self, mock_get):
+        result = utils.get_page_status('https://www.example.com')
+
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['label'], 'Connection Error')
+        self.assertIn('timed out', result['message'])
+
+    @patch('shared.utils.requests.get',
+           side_effect=utils.requests.exceptions.ConnectionError)
+    def test_page_status_connection_error(self, mock_get):
+        result = utils.get_page_status('https://www.example.com')
+
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['label'], 'Connection Error')
+        self.assertEqual(result['message'], 'Site Sensei could not reach this webpage.')
+
 
 class TestWebChecks(unittest.TestCase):
     @patch('shared.webchecks.urllib.request.urlopen')
@@ -73,10 +154,26 @@ class TestWebChecks(unittest.TestCase):
         self.assertIsInstance(result, dict)
 
     @patch('shared.webchecks.urllib.request.urlopen')
-    def test_get_links_list_or_error(self, mock_urlopen):
+    def test_get_links_returns_list(self, mock_urlopen):
         mock_urlopen.return_value.read.return_value = b'<a href="about.html">About</a>'
         links = webchecks.get_links("https://www.example.com")
-        self.assertTrue(isinstance(links, list) or isinstance(links, Exception))
+        self.assertEqual(links, ['about.html'])
+
+    @patch('shared.webchecks.urllib.request.urlopen')
+    def test_get_links_skips_missing_href(self, mock_urlopen):
+        mock_urlopen.return_value.read.return_value = (
+            b'<a>Missing</a><a href="about.html">About</a>'
+        )
+
+        self.assertEqual(
+            webchecks.get_links("https://www.example.com"),
+            ['about.html'],
+        )
+
+    @patch('shared.webchecks.urllib.request.urlopen',
+           side_effect=urllib.error.URLError('offline'))
+    def test_get_links_returns_empty_list_when_page_unavailable(self, mock_urlopen):
+        self.assertEqual(webchecks.get_links("https://www.example.com"), [])
 
     @patch('shared.webchecks.requests.get')
     def test_get_class_output(self, mock_get):
@@ -84,32 +181,62 @@ class TestWebChecks(unittest.TestCase):
         msg = webchecks.get_class("https://www.example.com")
         self.assertIsInstance(msg, str)
 
+    @patch('shared.webchecks.requests.get',
+           side_effect=webchecks.requests.RequestException('offline'))
+    def test_get_class_returns_message_when_page_unavailable(self, mock_get):
+        msg = webchecks.get_class("https://www.example.com")
+
+        self.assertIsInstance(msg, str)
+        self.assertIn('could not be loaded', msg)
+
     @patch('shared.webchecks.urllib.request.urlopen')
     def test_has_image_credit_boolean(self, mock_urlopen):
         mock_urlopen.return_value.read.return_value = b'<p>Image by Example</p>'
         result = webchecks.has_image_credit("https://www.example.com")
         self.assertIn(result, [True, False])
 
+    @patch('shared.webchecks.urllib.request.urlopen',
+           side_effect=urllib.error.URLError('offline'))
+    def test_has_image_credit_returns_false_when_page_unavailable(self, mock_urlopen):
+        self.assertFalse(webchecks.has_image_credit("https://www.example.com"))
+
 
 class TestGraderIntegration(unittest.TestCase):
     @patch('student_mode.webpage_grader.check_page_link')
-    @patch('student_mode.webpage_grader.check_project_url')
     @patch('student_mode.webpage_grader.get_links', return_value=['about.html'])
     @patch('student_mode.webpage_grader.get_class', return_value='✔️ Class')
     @patch('student_mode.webpage_grader.get_tags', return_value={'h1': 1, 'p': 3, 'img': 3})
     def test_grade_student_output_keys(self, mock_tags, mock_class, mock_links,
-                                       mock_project_url, mock_page_link):
-        mock_project_url.return_value = 'project status'
+                                       mock_page_link):
         mock_page_link.return_value = 'link status'
-        result = webpage_grader.grade_student("https://www.example.com")
+        result = webpage_grader.grade_student(
+            "https://www.example.com",
+            page_status=successful_page_status(),
+        )
         self.assertIn("feedback", result)
         self.assertIn("class_message", result)
         self.assertIn("url_status", result)
 
+    @patch('student_mode.webpage_grader.get_tags')
+    def test_grade_student_stops_after_http_failure(self, mock_tags):
+        status = failed_page_status(
+            404,
+            'Not Found',
+            'Site Sensei could not find this page.',
+        )
+
+        result = webpage_grader.grade_student(
+            'https://www.example.com/missing.html',
+            page_status=status,
+        )
+
+        self.assertEqual(result['url_status'], 'HTTP Status: 404 Not Found')
+        self.assertEqual(result['feedback'], '❌ Page not analyzed')
+        mock_tags.assert_not_called()
+
     @patch('student_mode.webpage_grader.count_comments', return_value=0)
     @patch('student_mode.webpage_grader.count_broken_tags', return_value={})
     @patch('student_mode.webpage_grader.get_css_file_url', return_value=None)
-    @patch('student_mode.webpage_grader.requests.get')
     @patch('student_mode.webpage_grader.has_image_credit', return_value=True)
     @patch('student_mode.webpage_grader.check_page_link', return_value='link status')
     @patch('student_mode.webpage_grader.get_links', return_value=['about.html'])
@@ -117,13 +244,240 @@ class TestGraderIntegration(unittest.TestCase):
     @patch('student_mode.webpage_grader.get_tags', return_value={})
     def test_generate_feedback_html_format(self, mock_tags, mock_class, mock_links,
                                            mock_page_link, mock_image_credit,
-                                           mock_get, mock_css_url, mock_broken_tags,
+                                           mock_css_url, mock_broken_tags,
                                            mock_comments):
-        mock_get.return_value.text = '<h1>Title</h1>'
-        mock_get.return_value.raise_for_status = Mock()
-        html_output = webpage_grader.generate_feedback_html("https://www.example.com")
+        html_output = webpage_grader.generate_feedback_html(
+            "https://www.example.com",
+            page_status=successful_page_status(),
+        )
         self.assertIn("<ul>", html_output)
         self.assertIn("https://www.example.com", html_output)
+        self.assertIn("HTTP Status: 200 OK", html_output)
+
+    @patch('student_mode.webpage_grader.count_comments', return_value=0)
+    @patch('student_mode.webpage_grader.count_broken_tags', return_value={})
+    @patch('student_mode.webpage_grader.check_css_properties', return_value={
+        'used': [f'property-{index}' for index in range(8)],
+        'missing': [],
+        'selector_count': 2,
+        'message': 'CSS details',
+    })
+    @patch('student_mode.webpage_grader.get_css_file_url',
+           return_value='https://www.example.com/style.css')
+    @patch('student_mode.webpage_grader.has_image_credit', return_value=False)
+    @patch('student_mode.webpage_grader.check_page_link')
+    @patch('student_mode.webpage_grader.get_links', return_value=[])
+    @patch('student_mode.webpage_grader.get_class', return_value='No classes')
+    @patch('student_mode.webpage_grader.get_tags', return_value={
+        'h1': 1, 'h2': 1, 'p': 1, 'img': 1,
+        'li': 1, 'a': 1, 'br': 1, 'h3': 1,
+    })
+    def test_feedback_shows_rubric_tag_and_css_targets(
+            self, mock_tags, mock_class, mock_links, mock_page_link,
+            mock_image_credit, mock_css_url, mock_css_properties,
+            mock_broken_tags, mock_comments):
+        html_output = webpage_grader.generate_feedback_html(
+            'https://www.example.com',
+            page_status=successful_page_status(),
+        )
+
+        self.assertIn('HTML tag types: 8 (target: 8+)', html_output)
+        self.assertIn('CSS properties: 8 (target: 8+)', html_output)
+
+    @patch('student_mode.webpage_grader.count_comments', return_value=0)
+    @patch('student_mode.webpage_grader.count_broken_tags', return_value={})
+    @patch('student_mode.webpage_grader.get_css_file_url', return_value=None)
+    @patch('student_mode.webpage_grader.has_image_credit', return_value=False)
+    @patch('student_mode.webpage_grader.check_page_link')
+    @patch('student_mode.webpage_grader.get_class', return_value='No classes')
+    @patch('student_mode.webpage_grader.get_tags', return_value={})
+    def test_generate_feedback_handles_no_links(
+            self, mock_tags, mock_class, mock_page_link, mock_image_credit,
+            mock_css_url, mock_broken_tags, mock_comments):
+        with patch('student_mode.webpage_grader.get_links', return_value=[]):
+            html_output = webpage_grader.generate_feedback_html(
+                'https://www.example.com/index.html',
+                page_status=successful_page_status(),
+            )
+
+        mock_page_link.assert_not_called()
+        self.assertIn('Missing or invalid link to another HTML page', html_output)
+
+    @patch('student_mode.webpage_grader.count_comments', return_value=0)
+    @patch('student_mode.webpage_grader.count_broken_tags', return_value={})
+    @patch('student_mode.webpage_grader.get_css_file_url', return_value=None)
+    @patch('student_mode.webpage_grader.has_image_credit', return_value=False)
+    @patch('student_mode.webpage_grader.check_page_link', return_value='link status')
+    @patch('student_mode.webpage_grader.get_links',
+           return_value=[None, '', 'about.html'])
+    @patch('student_mode.webpage_grader.get_class', return_value='No classes')
+    @patch('student_mode.webpage_grader.get_tags', return_value={})
+    def test_generate_feedback_ignores_invalid_hrefs(
+            self, mock_tags, mock_class, mock_links, mock_page_link,
+            mock_image_credit, mock_css_url, mock_broken_tags,
+            mock_comments):
+        webpage_grader.generate_feedback_html(
+            'https://www.example.com/projects/index.html',
+            page_status=successful_page_status(),
+        )
+
+        mock_page_link.assert_called_once_with(
+            'https://www.example.com/projects/about.html'
+        )
+
+    @patch('student_mode.webpage_grader.get_tags')
+    @patch('student_mode.webpage_grader.get_page_status')
+    def test_generate_feedback_stops_when_page_unavailable(
+            self, mock_status, mock_tags):
+        mock_status.return_value = {
+            'ok': False,
+            'status_code': None,
+            'reason': None,
+            'label': 'Connection Error',
+            'message': 'Site Sensei could not reach this webpage.',
+            'content': None,
+        }
+
+        html_output = webpage_grader.generate_feedback_html(
+            'https://www.example.com/unavailable.html'
+        )
+
+        self.assertIn('Connection Error', html_output)
+        self.assertIn('could not reach this webpage', html_output)
+        self.assertNotIn('Images:', html_output)
+        mock_tags.assert_not_called()
+
+    @patch('student_mode.webpage_grader.get_tags')
+    def test_http_failures_do_not_produce_grading_results(self, mock_tags):
+        cases = (
+            (403, 'Forbidden', 'server blocked the request'),
+            (404, 'Not Found', 'could not find this page'),
+            (500, 'Internal Server Error', 'request was unsuccessful'),
+        )
+        for status_code, reason, expected_message in cases:
+            with self.subTest(status_code=status_code):
+                status = failed_page_status(
+                    status_code,
+                    reason,
+                    f'Site Sensei {expected_message}.',
+                )
+                html_output = webpage_grader.generate_feedback_html(
+                    'https://www.example.com/page.html',
+                    page_status=status,
+                )
+
+                self.assertIn(f'HTTP Status: {status_code} {reason}', html_output)
+                self.assertIn(expected_message, html_output)
+                self.assertNotIn('Paragraphs:', html_output)
+        mock_tags.assert_not_called()
+
+
+class TestBatchGrader(unittest.TestCase):
+    @patch('teacher_mode.batch_grader.get_page_status',
+           return_value=successful_page_status())
+    @patch('teacher_mode.batch_grader.generate_feedback_html',
+           side_effect=ValueError('malformed student page'))
+    @patch('teacher_mode.batch_grader.count_comments', return_value=0)
+    @patch('teacher_mode.batch_grader.count_broken_tags', return_value={})
+    @patch('teacher_mode.batch_grader.get_css_file_url', return_value=None)
+    @patch('teacher_mode.batch_grader.get_tags', return_value={})
+    def test_malformed_student_page_does_not_break_batch_row(
+            self, mock_tags, mock_css_url, mock_broken_tags,
+            mock_comments, mock_feedback, mock_status):
+        result = batch_grader.analyze_student_row({
+            'name': 'Student',
+            'url': 'https://www.example.com/broken.html',
+        })
+
+        self.assertEqual(result['name'], 'Student')
+        self.assertIn('Could not generate detailed feedback', result['feedback_html'])
+
+    @patch('teacher_mode.batch_grader.generate_feedback_html')
+    @patch('teacher_mode.batch_grader.get_tags')
+    @patch('teacher_mode.batch_grader.get_page_status')
+    def test_retrieval_failures_record_status_without_grading_student(
+            self, mock_status, mock_tags, mock_feedback):
+        statuses = (
+            failed_page_status(
+                403,
+                'Forbidden',
+                'Site Sensei could not analyze this page because the server blocked the request.',
+            ),
+            failed_page_status(
+                404,
+                'Not Found',
+                'Site Sensei could not find this page.',
+            ),
+            {
+                'ok': False, 'status_code': None, 'reason': None,
+                'label': 'Connection Error',
+                'message': 'Site Sensei could not reach this webpage because the request timed out.',
+                'content': None,
+            },
+            {
+                'ok': False, 'status_code': None, 'reason': None,
+                'label': 'Connection Error',
+                'message': 'Site Sensei could not reach this webpage.',
+                'content': None,
+            },
+        )
+        for status in statuses:
+            with self.subTest(status=status['label'], message=status['message']):
+                mock_status.return_value = status
+                mock_feedback.return_value = (
+                    f"<p><strong>{status['label']}</strong></p>"
+                )
+
+                result = batch_grader.analyze_student_row({
+                    'name': 'Student',
+                    'url': 'https://www.example.com/page.html',
+                })
+
+                self.assertEqual(result['page_status'], status['label'])
+                self.assertEqual(result['paragraph_count'], 'N/A')
+                self.assertIn(status['label'], result['feedback_html'])
+        mock_tags.assert_not_called()
+
+    @patch('teacher_mode.batch_grader.get_page_status')
+    def test_batch_continues_after_multiple_retrieval_failures(self, mock_status):
+        mock_status.side_effect = [
+            failed_page_status(
+                403,
+                'Forbidden',
+                'Site Sensei could not analyze this page because the server blocked the request.',
+            ),
+            {
+                'ok': False, 'status_code': None, 'reason': None,
+                'label': 'Connection Error',
+                'message': 'Site Sensei could not reach this webpage.',
+                'content': None,
+            },
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            input_csv = temp_path / 'students.csv'
+            output_csv = temp_path / 'grades.csv'
+            output_html = temp_path / 'feedback.html'
+            with input_csv.open('w', newline='', encoding='utf-8') as csv_out:
+                writer = csv.DictWriter(csv_out, fieldnames=['name', 'url'])
+                writer.writeheader()
+                writer.writerows([
+                    {'name': 'Blocked', 'url': 'https://example.com/blocked'},
+                    {'name': 'Offline', 'url': 'https://example.com/offline'},
+                ])
+
+            batch_grader.grade_from_csv(input_csv, output_csv, output_html)
+
+            with output_csv.open(newline='', encoding='utf-8') as csv_in:
+                rows = list(csv.DictReader(csv_in))
+            feedback = output_html.read_text(encoding='utf-8')
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]['page_status'], 'HTTP Status: 403 Forbidden')
+        self.assertEqual(rows[1]['page_status'], 'Connection Error')
+        self.assertIn('Blocked', feedback)
+        self.assertIn('Offline', feedback)
 
 
 class TestStudentRoutes(unittest.TestCase):
@@ -136,6 +490,16 @@ class TestStudentRoutes(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Student Self Check', response.data)
+        self.assertIn(b'Current grading profile', response.data)
+        self.assertIn(b'View example rubric', response.data)
+        self.assertIn(b'require teacher review', response.data)
+
+    def test_example_rubric_pdf_is_available(self):
+        response = self.client.get('/rubrics/html-mini-web-page-rubric.pdf')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/pdf')
+        self.assertTrue(response.data.startswith(b'%PDF'))
 
     def test_blank_url_returns_upload_page_with_validation_message(self):
         response = self.client.post('/student', data={'url': '   '})
@@ -156,10 +520,51 @@ class TestStudentRoutes(unittest.TestCase):
         self.assertIn(url.encode(), response.data)
         self.assertIn(b'<p>Grader result</p>', response.data)
 
-    def test_teacher_routes_remain_available(self):
-        for route in ('/teacher', '/teacher-batch', '/teacher-results'):
+
+
+class TestTeacherRoutes(unittest.TestCase):
+    def setUp(self):
+        flask_app.app.config.update(TESTING=True, SECRET_KEY='test-secret')
+        self.client = flask_app.app.test_client()
+
+    @patch.dict('os.environ', {}, clear=True)
+    def test_teacher_mode_is_unavailable_without_password(self):
+        for route in (
+            '/teacher',
+            '/teacher-batch',
+            '/teacher-results',
+            '/download/csv',
+            '/download/html',
+        ):
             with self.subTest(route=route):
-                self.assertEqual(self.client.get(route).status_code, 200)
+                response = self.client.get(route)
+
+                self.assertEqual(response.status_code, 503)
+                self.assertIn(b'Teacher Mode Unavailable', response.data)
+                self.assertIn(b'contact me for a demonstration', response.data)
+
+    @patch.dict('os.environ', {'TEACHER_PASSWORD': 'classroom-secret'}, clear=True)
+    def test_teacher_mode_accepts_configured_password(self):
+        response = self.client.post(
+            '/teacher',
+            data={'password': 'classroom-secret'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers['Location'], '/teacher-batch')
+
+    @patch.dict('os.environ', {'TEACHER_PASSWORD': 'classroom-secret'}, clear=True)
+    def test_teacher_mode_rejects_incorrect_password(self):
+        response = self.client.post('/teacher', data={'password': 'admin'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Incorrect password. Try again.', response.data)
+
+    @patch.dict('os.environ', {'TEACHER_PASSWORD': 'classroom-secret'}, clear=True)
+    def test_teacher_batch_is_available_when_configured(self):
+        response = self.client.get('/teacher-batch')
+
+        self.assertEqual(response.status_code, 200)
 
 
 class TestContainerConfiguration(unittest.TestCase):

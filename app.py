@@ -1,4 +1,7 @@
-from flask import Flask, request, render_template, send_file, redirect, url_for, flash
+from flask import (
+    Flask, flash, redirect, render_template, request, send_file,
+    send_from_directory, url_for,
+)
 from teacher_mode.batch_grader import grade_from_csv
 from student_mode.webpage_grader import generate_feedback_html
 from shared.utils import DEFAULT_REQUEST_TIMEOUT
@@ -18,6 +21,16 @@ if not app.secret_key:
     app.secret_key = "site-sensei-development-only"
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+RUBRICS_DIR = os.path.join(os.path.dirname(__file__), "rubrics")
+
+
+def get_teacher_password():
+    """Return the configured teacher password, or None when teacher mode is disabled."""
+    return os.getenv('TEACHER_PASSWORD') or None
+
+
+def teacher_mode_unavailable():
+    return render_template('teacher_unavailable.html'), 503
 
 
 def get_server_config():
@@ -33,9 +46,13 @@ def get_server_config():
 # 🔐 New login route
 @app.route('/teacher', methods=['GET', 'POST'])
 def teacher_login():
+    teacher_password = get_teacher_password()
+    if teacher_password is None:
+        return teacher_mode_unavailable()
+
     if request.method == 'POST':
         password = request.form.get('password')
-        if password == 'admin':
+        if password == teacher_password:
             return redirect(url_for('teacher_batch'))
         else:
             flash('Incorrect password. Try again.')
@@ -44,6 +61,9 @@ def teacher_login():
 
 @app.route('/teacher-batch', methods=['GET', 'POST'])
 def teacher_batch():
+    if get_teacher_password() is None:
+        return teacher_mode_unavailable()
+
     if request.method == 'POST':
         uploaded_file = request.files.get('csv_file')
         sheet_link = request.form.get('sheet_link')
@@ -74,16 +94,22 @@ def teacher_batch():
 
 @app.route('/teacher-results')
 def teacher_results():
+    if get_teacher_password() is None:
+        return teacher_mode_unavailable()
     return render_template('teacher_results.html')
 
 
 @app.route('/download/csv')
 def download_csv():
+    if get_teacher_password() is None:
+        return teacher_mode_unavailable()
     return send_file(os.path.join(DATA_DIR, 'grades_output.csv'), as_attachment=True)
 
 
 @app.route('/download/html')
 def download_html():
+    if get_teacher_password() is None:
+        return teacher_mode_unavailable()
     return send_file(os.path.join(DATA_DIR, 'grades_feedback.html'), as_attachment=False)
 
 @app.route('/student', methods=['GET', 'POST'])
@@ -109,6 +135,15 @@ def student_upload():
             return render_template('student_upload.html', submitted_url=url)
 
     return render_template('student_upload.html')
+
+
+@app.route('/rubrics/html-mini-web-page-rubric.pdf')
+def example_rubric():
+    return send_from_directory(
+        RUBRICS_DIR,
+        'html-mini-web-page-rubric.pdf',
+        mimetype='application/pdf',
+    )
 
 
 @app.route('/')

@@ -35,8 +35,7 @@ from shared.webchecks import (
     count_broken_tags, count_comments, get_tags,
     get_css_file_url, check_css_properties
 )
-from shared.utils import DEFAULT_REQUEST_TIMEOUT
-import requests
+from shared.utils import get_page_status
 from bs4 import BeautifulSoup
 import csv
 from student_mode.webpage_grader import generate_feedback_html
@@ -52,7 +51,7 @@ smart_tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'img']
 fieldnames = [
     'name', 'url', 'title', 'subheading_total', 'paragraph_count',
     'list_count', 'image_count', 'css_selectors', 'css_properties',
-    'tag_mismatches', 'html_comments'
+    'tag_mismatches', 'html_comments', 'page_status'
 ]
 
 
@@ -67,7 +66,21 @@ def analyze_student_row(row):
             'list_count': 'N/A', 'image_count': 'N/A',
             'css_selectors': 'N/A', 'css_properties': 'N/A',
             'tag_mismatches': 'N/A', 'html_comments': 'N/A',
+            'page_status': 'No webpage submitted',
             'feedback_html': f"<h2>{name}</h2><p>❌ No webpage submitted.</p><hr>\n"
+        }
+
+    page_status = get_page_status(url)
+    if not page_status['ok']:
+        feedback_html = generate_feedback_html(url, page_status=page_status)
+        return {
+            'name': name, 'url': url, 'title': 'N/A',
+            'subheading_total': 'N/A', 'paragraph_count': 'N/A',
+            'list_count': 'N/A', 'image_count': 'N/A',
+            'css_selectors': 'N/A', 'css_properties': 'N/A',
+            'tag_mismatches': 'N/A', 'html_comments': 'N/A',
+            'page_status': page_status['label'],
+            'feedback_html': f"<h2>{name}</h2>\n" + feedback_html,
         }
 
     try:
@@ -76,7 +89,7 @@ def analyze_student_row(row):
         tag_counts = {}
 
     try:
-        h1_text = BeautifulSoup(requests.get(url, timeout=DEFAULT_REQUEST_TIMEOUT).text, 'html.parser')\
+        h1_text = BeautifulSoup(page_status['content'], 'html.parser')\
                     .find('h1').get_text(strip=True)
     except Exception:
         h1_text = "Missing"
@@ -106,7 +119,7 @@ def analyze_student_row(row):
         html_comments = "Error"
 
     try:
-        feedback_html = generate_feedback_html(url)
+        feedback_html = generate_feedback_html(url, page_status=page_status)
     except Exception:
         feedback_html = "<p>❌ Could not generate detailed feedback.</p>"
 
@@ -122,6 +135,7 @@ def analyze_student_row(row):
         'css_properties': css_properties,
         'tag_mismatches': mismatch_count,
         'html_comments': html_comments,
+        'page_status': page_status['label'],
         'feedback_html': f"<h2>{name} – {h1_text}</h2>\n" + feedback_html
     }
 
