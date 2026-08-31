@@ -493,6 +493,22 @@ class TestStudentRoutes(unittest.TestCase):
         self.assertIn(b'Current grading profile', response.data)
         self.assertIn(b'View example rubric', response.data)
         self.assertIn(b'require teacher review', response.data)
+        self.assertIn(b'/static/assets/favicon-32x32.png', response.data)
+        self.assertIn(b'/static/assets/favicon-16x16.png', response.data)
+        self.assertIn(b'/static/assets/apple-touch-icon.png', response.data)
+
+    def test_favicon_assets_are_served(self):
+        for filename in (
+            'favicon-32x32.png',
+            'favicon-16x16.png',
+            'apple-touch-icon.png',
+        ):
+            with self.subTest(filename=filename):
+                response = self.client.get(f'/static/assets/{filename}')
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.mimetype, 'image/png')
+                self.assertTrue(response.data.startswith(b'\x89PNG\r\n\x1a\n'))
 
     def test_example_rubric_pdf_is_available(self):
         response = self.client.get('/rubrics/html-mini-web-page-rubric.pdf')
