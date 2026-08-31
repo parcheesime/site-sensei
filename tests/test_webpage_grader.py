@@ -496,6 +496,13 @@ class TestStudentRoutes(unittest.TestCase):
         self.assertIn(b'/static/assets/favicon-32x32.png', response.data)
         self.assertIn(b'/static/assets/favicon-16x16.png', response.data)
         self.assertIn(b'/static/assets/apple-touch-icon.png', response.data)
+        self.assertIn(b'Built for student HTML/CSS feedback', response.data)
+        self.assertIn(
+            b'href="https://github.com/parcheesime/site-sensei" '
+            b'target="_blank" rel="noopener noreferrer"',
+            response.data,
+        )
+        self.assertIn(b'>Example Rubric</a>', response.data)
 
     def test_favicon_assets_are_served(self):
         for filename in (

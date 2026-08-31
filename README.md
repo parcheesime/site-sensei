@@ -2,6 +2,10 @@
 
 **Site Sensei** is a grading tool that helps students and teachers evaluate web development projects. It currently supports HTML and CSS analysis and is built for **educational purposes**.
 
+**Public live demo:** [site-sensei.onrender.com](https://site-sensei.onrender.com/)
+
+The public demo offers the student self-check. Teacher batch mode is disabled publicly and is available by request for demonstrations.
+
 ---
 
 ## 🎯 Purpose
@@ -31,9 +35,11 @@ Site Sensei's current built-in checks are based on the **HTML Mini Web Page - Pr
 
 Site Sensei automates only criteria that can reasonably be evaluated from a retrieved webpage. Current checks cover observable HTML elements, HTML tag variety, CSS property variety, external stylesheet detection, tag mismatches, comments, classes, image-credit text, and linked HTML pages. These checks provide deterministic feedback; they do not evaluate the entire rubric.
 
+Some external websites block automated analysis. When a page returns an HTTP error such as `403 Forbidden` or cannot be reached, Site Sensei reports that status and stops instead of producing misleading grading results.
+
 Teacher review is still required for peer feedback, student reflection, adherence to a planning document, and subjective judgments about code readability or formatting. The PDF is an example rubric, not a claim that every criterion is automatically graded.
 
-Planned rubric support will let teachers and students upload assignment rubrics and use them to configure rubric-driven HTML and CSS checks. Rubric uploading and parsing are not implemented yet.
+Planned rubric support will let teachers and students upload a custom assignment rubric so the deterministic HTML and CSS checks can adapt to that assignment. Rubric uploading and parsing are not implemented yet.
 
 ### 🌐 Web App Interface
 
